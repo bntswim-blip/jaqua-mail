@@ -804,7 +804,10 @@ input[type="file"] { font-size: 15px; }
         <div class="card">
           <div class="row">
             <h2>連絡先</h2>
-            <button id="add-contact-btn" class="mail-admin-only hidden">＋ 連絡先を追加</button>
+            <div class="row" style="gap:8px">
+              <button id="import-contact-btn" class="secondary mail-admin-only hidden">一括登録</button>
+              <button id="add-contact-btn" class="mail-admin-only hidden">＋ 連絡先を追加</button>
+            </div>
           </div>
 
           <div class="filters" style="margin-top:20px">
@@ -1036,6 +1039,31 @@ input[type="file"] { font-size: 15px; }
     <div class="row" style="justify-content:flex-end">
       <button type="button" class="secondary" id="group-cancel">閉じる</button>
       <button type="button" id="group-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 連絡先の一括登録 -->
+<div id="import-modal" class="modal-backdrop hidden">
+  <div class="modal modal-wide stack">
+    <h2>連絡先の一括登録</h2>
+    <p class="muted small" style="margin:0">
+      Excel やスプレッドシートの表を、見出しの行ごとコピーして下の欄に貼り付けるか、CSVファイルを選んでください。
+      1行目は見出しにします。
+    </p>
+    <div class="muted small" style="margin:0">
+      <strong>必要な列</strong>：団体名 ／ 区分（事務局・委員長・その他）／ メールアドレス<br>
+      <strong>あると便利な列</strong>：都道府県（地域ブロックは自動で入ります）／ 氏名 ／ 電話番号<br>
+      同じ団体名・同じメールアドレスがすでにある行は、重複として読み飛ばします。
+    </div>
+    <input type="file" id="import-file" accept=".csv,.tsv,.txt">
+    <textarea id="import-text" rows="9" placeholder="都道府県	団体名	区分	氏名	メールアドレス&#10;山梨県	山梨県水泳連盟	事務局		yamanashi@example.jp" spellcheck="false"></textarea>
+    <div id="import-result" class="message hidden"></div>
+    <ul id="import-errors" class="muted small" style="margin:0;padding-left:20px"></ul>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="secondary" id="import-cancel">閉じる</button>
+      <button type="button" class="secondary" id="import-check">内容を確認</button>
+      <button type="button" id="import-commit" disabled>登録する</button>
     </div>
   </div>
 </div>
@@ -2321,6 +2349,106 @@ input[type="file"] { font-size: 15px; }
   $('add-contact-btn').addEventListener('click', function () { openContactModal(null); });
   $('contact-cancel').addEventListener('click', function () { show('contact-modal', false); });
 
+  /* ── 一括登録 ── */
+
+  var importChecked = '';   // 確認済みの内容（確認後に書き換えたら、もう一度確認させる）
+
+  $('import-contact-btn').addEventListener('click', function () {
+    $('import-text').value = '';
+    $('import-file').value = '';
+    resetImportResult();
+    show('import-modal', true);
+  });
+  $('import-cancel').addEventListener('click', function () { show('import-modal', false); });
+
+  function resetImportResult() {
+    importChecked = '';
+    $('import-commit').disabled = true;
+    show('import-result', false);
+    $('import-errors').innerHTML = '';
+  }
+  $('import-text').addEventListener('input', resetImportResult);
+
+  // Excel の CSV は Shift_JIS のことが多い。UTF-8 として読めなければ Shift_JIS で読む。
+  $('import-file').addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var text;
+      try {
+        text = new TextDecoder('utf-8', { fatal: true }).decode(reader.result);
+      } catch (e) {
+        text = new TextDecoder('shift_jis').decode(reader.result);
+      }
+      $('import-text').value = text;
+      resetImportResult();
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  function runImport(commit) {
+    var text = $('import-text').value;
+    var btn = commit ? $('import-commit') : $('import-check');
+    busy(btn, true, commit ? '登録中…' : '確認中…');
+    $('import-errors').innerHTML = '';
+
+    return api('apiImportContacts', getToken(), text, commit).then(function (r) {
+      var box = $('import-result');
+      var list = $('import-errors');
+      if (commit) {
+        setMessage('import-result', r.createCount + '件を登録しました。', 'info');
+        $('import-commit').disabled = true;
+        loadContacts();
+        return;
+      }
+      if (r.errorCount) {
+        setMessage('import-result',
+          r.total + '件のうち ' + r.errorCount + '件に誤りがあります。直してから、もう一度確認してください。', 'error');
+        r.errors.forEach(function (e) {
+          var li = document.createElement('li');
+          li.textContent = e.line + '行目：' + e.message;
+          list.appendChild(li);
+        });
+        $('import-commit').disabled = true;
+        return;
+      }
+      setMessage('import-result',
+        r.createCount + '件を新しく登録します。' +
+        (r.skipCount ? '（登録済みのため読み飛ばす：' + r.skipCount + '件）' : ''), 'info');
+      r.sample.forEach(function (c) {
+        var li = document.createElement('li');
+        li.textContent = [c.region, c.prefecture, c.organization, c.typeLabel, c.name, c.email]
+          .filter(Boolean).join(' / ');
+        list.appendChild(li);
+      });
+      if (r.createCount > r.sample.length) {
+        var more = document.createElement('li');
+        more.textContent = '…ほか ' + (r.createCount - r.sample.length) + '件';
+        list.appendChild(more);
+      }
+      importChecked = text;
+      $('import-commit').disabled = r.createCount === 0;
+    }).catch(function (err) {
+      setMessage('import-result', err.message, 'error');
+      $('import-commit').disabled = true;
+    }).then(function () {
+      busy(btn, false);
+      if (commit) $('import-commit').disabled = true;
+    });
+  }
+
+  $('import-check').addEventListener('click', function () { runImport(false); });
+  $('import-commit').addEventListener('click', function () {
+    // 確認した内容と違うものは登録しない
+    if ($('import-text').value !== importChecked) {
+      setMessage('import-result', '内容が変わりました。もう一度「内容を確認」を押してください。', 'error');
+      $('import-commit').disabled = true;
+      return;
+    }
+    runImport(true);
+  });
+
   function openContactModal(contact) {
     $('contact-modal-title').textContent = contact ? '連絡先を編集' : '連絡先を追加';
     $('contact-id').value = contact ? contact.contactId : '';
@@ -2400,6 +2528,7 @@ input[type="file"] { font-size: 15px; }
     if (operation === 'CREATE') return '登録';
     if (operation === 'DISABLE') return '無効化';
     if (operation === 'ENABLE') return '有効化';
+    if (operation === 'IMPORT') return '一括登録';
     return '変更';
   }
 
