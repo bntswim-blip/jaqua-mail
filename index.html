@@ -1,0 +1,3082 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (window.top !== window.self) { document.documentElement.innerHTML = ""; }</script>
+<script>window.JAQUA_API_URL = "https://script.google.com/macros/s/AKfycbzA9dOI-Z4PUlSORzjtYiQXbiOK_NPr5qezXzJV3N4Lq4Ol-vriJWD-fYccP5_QIcoLCg/exec";</script>
+<style>
+/* デザインB：白基調・大きな余白・角丸カード・最小限の色（§47） */
+:root {
+  --bg: #ffffff;
+  --bg-subtle: #f5f5f7;
+  --text: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --border: #d2d2d7;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --danger: #c9372c;
+  --radius: 18px;
+  --radius-sm: 10px;
+  --space: 24px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+h1 { font-size: 34px; line-height: 1.25; }
+h2 { font-size: 24px; }
+h3 { font-size: 19px; }
+
+.hidden { display: none !important; }
+.muted { color: var(--text-secondary); }
+.small { font-size: 14px; }
+.center { text-align: center; }
+.stack > * + * { margin-top: 16px; }
+
+/* ── ログイン ── */
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space);
+  background: var(--bg-subtle);
+}
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 48px 40px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+.login-card h1 { font-size: 26px; margin-bottom: 8px; }
+
+/* ── フォーム ── */
+label {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+input[type="text"], input[type="email"], select {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 17px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.18);
+}
+.code-input {
+  font-size: 32px;
+  letter-spacing: 0.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  padding: 14px 24px;
+  border-radius: 980px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  white-space: nowrap;
+}
+button:hover:not(:disabled) { background: var(--accent-hover); }
+button:disabled { opacity: 0.45; cursor: default; }
+button.secondary {
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--border);
+}
+button.secondary:hover:not(:disabled) { background: var(--bg-subtle); }
+button.danger { background: transparent; color: var(--danger); border-color: var(--border); }
+button.block { width: 100%; }
+button.link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  padding: 4px;
+  font-size: 15px;
+}
+
+/* ── メッセージ ── */
+.message {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+}
+.message.error { background: #fdf0ef; color: var(--danger); }
+.message.info { background: var(--bg-subtle); color: var(--text-secondary); }
+
+/* ── アプリ本体 ── */
+.appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px var(--space);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: saturate(180%) blur(16px);
+  z-index: 10;
+}
+.appbar .title { font-size: 17px; font-weight: 600; }
+.appbar .who { font-size: 14px; color: var(--text-secondary); }
+
+/* PC：左ナビゲーション＋本体の2カラム（§49）*/
+.shell {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: start;
+}
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space) 12px;
+  position: sticky;
+  top: 74px;
+}
+.nav button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  padding: 10px 16px;
+  font-size: 15px;
+  text-align: left;
+  border-radius: var(--radius-sm);
+}
+.nav button.active { background: var(--bg-subtle); color: var(--text); font-weight: 600; }
+.nav button.nav-primary {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 500;
+  text-align: center;
+  border-radius: 980px;
+  margin-bottom: 12px;
+}
+.nav button.nav-primary:hover { background: var(--accent-hover); }
+
+main { padding: var(--space); min-width: 0; }
+
+/* 件数表示。未割当を最も強調する（§11）*/
+.stats {
+  display: grid;
+  /* 未割当が2枠を占めるため、6区分を1行に収めるには7列必要 */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+@media (max-width: 1000px) {
+  .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.stat {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text);
+}
+.stat:hover { background: var(--bg-subtle); }
+.stat .label { font-size: 13px; color: var(--text-secondary); display: block; }
+.stat .value {
+  font-size: 30px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.stat.selected { border-color: var(--text); }
+.stat.primary {
+  grid-column: span 2;
+  border-color: var(--accent);
+  background: rgba(0, 113, 227, 0.05);
+}
+.stat.primary .label { color: var(--accent); font-size: 15px; font-weight: 600; }
+.stat.primary .value { font-size: 46px; color: var(--accent); }
+.stat.primary.selected { box-shadow: 0 0 0 2px var(--accent); }
+
+/* 中央：一覧／右：詳細（§49）*/
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.detail-pane { position: sticky; top: 90px; }
+.mobile-only { display: none; }
+
+/* 一覧は列幅を固定し、長い件名は省略記号で収める */
+.list-pane table { table-layout: fixed; }
+.list-pane th, .list-pane td { padding: 12px 8px; }
+.list-pane col.c-received { width: 64px; }
+.list-pane col.c-from { width: 24%; }
+.list-pane col.c-assignee { width: 100px; }
+.list-pane tbody td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-pane tbody td .badge { max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
+
+tbody tr.thread { cursor: pointer; }
+tbody tr.thread:hover { background: var(--bg-subtle); }
+tbody tr.thread.selected { background: var(--bg-subtle); }
+.subject { font-weight: 500; }
+.nowrap { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.mail-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 15px;
+  line-height: 1.75;
+}
+/* 詳細画面の操作欄（担当割当・ステータス変更）*/
+.actions {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  margin: 20px 0;
+}
+.action-row + .action-row,
+.actions button + .action-row { margin-top: 20px; }
+.action-controls { display: flex; gap: 12px; align-items: center; }
+.action-controls select { flex: 1; min-width: 0; }
+.actions .message { margin-top: 16px; }
+.actions .message.hidden { display: none; }
+
+.meta { font-size: 14px; color: var(--text-secondary); }
+.meta dt { float: left; width: 5.5em; clear: left; }
+.meta dd { margin: 0 0 4px 6em; word-break: break-all; }
+
+@media (max-width: 1100px) {
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .detail-pane { position: static; }
+}
+
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+.card + .card { margin-top: 20px; }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── 表 ── */
+table { width: 100%; border-collapse: collapse; }
+th, td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  vertical-align: middle;
+}
+th { font-weight: 500; color: var(--text-secondary); font-size: 13px; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* 状態表示は色だけに頼らない（§48） */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.badge.on { color: var(--text); }
+.badge.off { color: var(--text-secondary); background: var(--bg-subtle); }
+
+/* ── モーダル ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space);
+  z-index: 100;
+}
+.modal {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 32px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-wide { max-width: 680px; }
+
+textarea {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  resize: vertical;
+}
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.18);
+}
+
+/* 変更できない項目は入力欄に見せない */
+.readonly-field {
+  padding: 13px 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  word-break: break-all;
+}
+
+/* 宛先欄の連絡先候補（§27）*/
+.suggestions {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.suggestions li {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.suggestions li:hover, .suggestions li.active { background: var(--bg-subtle); }
+.suggestions .s-name { font-size: 15px; }
+.suggestions .s-email { font-size: 13px; color: var(--text-secondary); }
+
+/* 選択したグループ（§33：BCC送信であることを明示する）*/
+.group-chips { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.group-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+}
+.group-chip .g-name { font-weight: 500; }
+.group-chip .g-note { font-size: 13px; color: var(--text-secondary); }
+.group-chip button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px 8px;
+}
+.group-chip button:hover { background: none; color: var(--danger); }
+
+.member-list {
+  margin-top: 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.member-list .member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+.member-list .member + .member { border-top: 1px solid var(--border); }
+.member-list .member .m-email { color: var(--text-secondary); font-size: 13px; }
+
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 400;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.inline-field input { width: auto; }
+
+input[type="date"] {
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+/* 日時・利用者は折り返さない（内容列に幅を譲る）*/
+@media (min-width: 601px) {
+  #logs-tbody td:nth-child(1),
+  #logs-tbody td:nth-child(2) { white-space: nowrap; }
+}
+
+/* ログの内容は長くなるので折り返して小さく出す */
+.log-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+  word-break: break-all;
+  max-width: 380px;
+  white-space: pre-wrap;
+}
+
+.filters { display: flex; gap: 12px; flex-wrap: wrap; }
+.filters input { flex: 2; min-width: 220px; }
+.filters select { flex: 1; min-width: 160px; }
+
+/* 無効にした連絡先は薄く表示する（色だけに頼らないよう「無効」バッジも出す）*/
+tbody tr.inactive td { opacity: 0.55; }
+
+button.small { font-size: 14px; padding: 8px 16px; }
+
+.field-row { display: flex; gap: 16px; }
+.field-row > * { flex: 1; min-width: 0; }
+
+/* 連絡先の変更履歴（§37）*/
+.history { font-size: 14px; }
+.history-item {
+  padding: 12px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+}
+.history-item + .history-item { margin-top: 8px; }
+.history-item .h-head { color: var(--text-secondary); font-size: 13px; }
+.history-item .h-change { margin-top: 6px; }
+.history-item .h-before { color: var(--text-secondary); text-decoration: line-through; }
+
+input[type="file"] { font-size: 15px; }
+.file-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.file-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+}
+.file-list li + li { margin-top: 6px; }
+
+/* 送信内容確認は大きく表示する（§20・§34）*/
+.confirm { margin: 0; }
+.confirm-label,
+.confirm dt {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.confirm dd {
+  margin: 0 0 20px;
+  font-size: 19px;
+  font-weight: 500;
+  word-break: break-all;
+}
+.confirm dd .count {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.confirm dd.empty { color: var(--text-secondary); font-weight: 400; }
+.confirm-body {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* ── スマートフォン：1画面ずつ表示する（§50）── */
+@media (max-width: 700px) {
+  h1 { font-size: 26px; }
+  main { padding: 16px; }
+  .login-card { padding: 32px 24px; }
+  .card { padding: 20px; border-radius: var(--radius-sm); }
+
+  .appbar { padding: 12px 16px; }
+  .appbar .title { font-size: 15px; }
+  .appbar button { padding: 10px 16px; font-size: 15px; }
+
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 12px 16px 0;
+    position: static;
+  }
+  /* 件数カードは主役を大きく、残りは小さく詰めて2行に収める */
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .stat.primary { grid-column: 1 / -1; }
+  .stat.primary .value { font-size: 38px; }
+  .stat:not(.primary) { padding: 10px 12px; }
+  .stat:not(.primary) .label { font-size: 12px; }
+  .stat:not(.primary) .value { font-size: 22px; }
+
+  /* 作成・編集画面も1画面として全面に開く（§50）*/
+  .modal-backdrop { padding: 0; align-items: stretch; }
+  .modal {
+    max-width: none;
+    max-height: none;
+    min-height: 100%;
+    border-radius: 0;
+    padding: 20px 16px 32px;
+  }
+  .modal .row { flex-direction: column-reverse; align-items: stretch; gap: 10px; }
+  .modal .row button { width: 100%; }
+
+  /* 一覧 → 詳細 と1画面ずつ切り替える */
+  .mobile-only { display: inline-block; }
+  /* 詳細は選択したときだけ全画面で開く */
+  .detail-pane { display: none; }
+  body.detail-open .detail-pane {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--bg);
+    overflow-y: auto;
+    padding: 16px;
+  }
+  body.detail-open .list-pane,
+  body.detail-open .stats,
+  body.detail-open .nav,
+  body.detail-open #dash-heading,
+  body.detail-open #dash-subheading { display: none; }
+  table, thead, tbody, tr, td { display: block; width: 100%; }
+  thead, colgroup { display: none; }
+  /* 縦積みでは省略せず全文を折り返す */
+  .list-pane table { table-layout: auto; }
+  .list-pane tbody td { white-space: normal; overflow: visible; }
+  tbody tr {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  td { border: none; padding: 6px 0; }
+  td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /*
+   * メール一覧だけは項目名を並べず、件名を主役にした2段組にする。
+   * 　件名
+   * 　送信者　日時　　　［状態］
+   */
+  .list-pane tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    padding: 14px 12px;
+  }
+  /* 上の td { width:100% } を打ち消さないと1項目ずつ折り返してしまう */
+  .list-pane tbody td { padding: 0; width: auto; }
+  .list-pane tbody td::before { display: none; }
+  .list-pane tbody td:nth-child(3) {
+    order: 1;
+    flex: 1 1 100%;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .list-pane tbody td:nth-child(2) { order: 2; font-size: 13px; color: var(--text-secondary); }
+  .list-pane tbody td:nth-child(1) { order: 3; font-size: 13px; color: var(--text-secondary); }
+  .list-pane tbody td:nth-child(4) { order: 4; margin-left: auto; }
+
+  /*
+   * 連絡先も同様に、団体名を主役にしてまとめる。
+   * 　団体名　　　　　　［区分］
+   * 　氏名 / メールアドレス
+   * 　地域・都道府県
+   * 　［編集］［無効にする］
+   */
+  #contacts-tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    padding: 14px 12px;
+  }
+  #contacts-tbody td { padding: 0; width: auto; }
+  #contacts-tbody td::before { display: none; }
+  #contacts-tbody td:nth-child(3) {
+    order: 1;
+    flex: 1 1 auto;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  #contacts-tbody td:nth-child(3) .small { font-weight: 400; }
+  #contacts-tbody td:nth-child(4) { order: 2; margin-left: auto; }
+  #contacts-tbody td:nth-child(5) {
+    order: 3;
+    flex: 1 1 100%;
+    font-size: 13px;
+    color: var(--text-secondary);
+    word-break: break-all;
+  }
+  #contacts-tbody td:nth-child(1),
+  #contacts-tbody td:nth-child(2) { order: 4; font-size: 13px; color: var(--text-secondary); }
+  #contacts-tbody td:nth-child(6) {
+    order: 5;
+    flex: 1 1 100%;
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+  }
+  #contacts-tbody td:nth-child(6) button { flex: 1; margin-left: 0 !important; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- ══════════ ログイン（§7）══════════ -->
+<div id="login-view" class="login-wrap">
+  <div class="login-card">
+    <h1>共有メール<br>対応管理システム</h1>
+    <p class="muted small">日本水泳連盟 地域指導者委員会</p>
+
+    <!-- 手順1：メールアドレス -->
+    <form id="email-step" class="stack" style="margin-top:32px">
+      <div>
+        <label for="email">メールアドレス</label>
+        <input type="email" id="email" autocomplete="email" required
+               placeholder="you@example.jp" autocapitalize="off" spellcheck="false">
+      </div>
+      <button type="submit" class="block" id="send-code-btn">認証コードを送る</button>
+      <p class="muted small center">登録済みの方へワンタイム認証コードをお送りします。</p>
+    </form>
+
+    <!-- 手順2：認証コード -->
+    <form id="code-step" class="stack hidden" style="margin-top:32px">
+      <div>
+        <label for="code">認証コード</label>
+        <input type="text" id="code" class="code-input" inputmode="numeric"
+               autocomplete="one-time-code" maxlength="6" required placeholder="000000">
+      </div>
+      <p class="muted small center">有効時間：10分</p>
+      <button type="submit" class="block" id="verify-btn">ログイン</button>
+      <div class="center">
+        <button type="button" class="link" id="back-to-email">メールアドレスを入力し直す</button>
+      </div>
+    </form>
+
+    <div id="login-message" class="message hidden" style="margin-top:20px"></div>
+  </div>
+</div>
+
+<!-- ══════════ アプリ本体 ══════════ -->
+<div id="app-view" class="hidden">
+  <header class="appbar">
+    <div>
+      <div class="title">共有メール対応管理システム</div>
+      <div class="who" id="who"></div>
+    </div>
+    <button class="secondary" id="logout-btn">ログアウト</button>
+  </header>
+
+  <!-- PCでは左ナビゲーション、スマートフォンでは上部の横並び（§49・§50）-->
+  <div class="shell">
+    <nav class="nav" id="nav">
+      <!-- ＋新規メールは常時表示する（§25）-->
+      <button type="button" id="new-mail-btn" class="nav-primary">＋ 新規メール</button>
+      <button data-view="home" class="active">ホーム</button>
+      <button data-view="contacts">連絡先</button>
+      <button data-view="groups">グループ</button>
+      <button data-view="users" class="admin-only hidden">利用者管理</button>
+      <button data-view="logs" class="admin-only hidden">操作ログ</button>
+      <button data-view="settings" class="admin-only hidden">システム設定</button>
+    </nav>
+
+    <main>
+      <!-- ダッシュボード（§11・§12・§14）-->
+      <section id="view-home">
+        <div class="row">
+          <div>
+            <h1 id="dash-heading">未割当メール</h1>
+            <p class="muted small" id="dash-subheading"></p>
+          </div>
+          <button class="secondary mail-admin-only hidden" id="fetch-btn">新着を取り込む</button>
+        </div>
+        <div id="fetch-message" class="message hidden" style="margin-top:12px"></div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="split">
+          <!-- 中央：メール一覧 -->
+          <div class="list-pane">
+            <div class="card">
+              <div class="row" style="margin-bottom:16px">
+                <h3 id="list-title">一覧</h3>
+                <input type="text" id="list-search" placeholder="件名で絞り込む"
+                       style="max-width:220px;padding:8px 12px;font-size:15px">
+              </div>
+              <table>
+                <colgroup>
+                  <col class="c-received"><col class="c-from"><col><col class="c-assignee">
+                </colgroup>
+                <thead>
+                  <tr><th>受信</th><th>送信者</th><th>件名</th><th id="col-last-head">担当</th></tr>
+                </thead>
+                <tbody id="threads-tbody"></tbody>
+              </table>
+              <div id="list-message" class="message hidden" style="margin-top:16px"></div>
+            </div>
+          </div>
+
+          <!-- 右：メール詳細（§15）-->
+          <div class="detail-pane" id="detail-pane">
+            <div class="card">
+              <button class="link mobile-only" id="detail-back">‹ 一覧へ戻る</button>
+              <div id="detail-body">
+                <p class="muted center" style="padding:40px 0">メールを選択してください。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 連絡先（§27〜§30・§36）-->
+      <section id="view-contacts" class="hidden">
+        <div class="card">
+          <div class="row">
+            <h2>連絡先</h2>
+            <button id="add-contact-btn" class="mail-admin-only hidden">＋ 連絡先を追加</button>
+          </div>
+
+          <div class="filters" style="margin-top:20px">
+            <input type="text" id="contact-keyword" placeholder="都道府県・団体名・氏名で検索">
+            <select id="contact-region"><option value="">地域ブロック すべて</option></select>
+            <select id="contact-type"><option value="">区分 すべて</option></select>
+          </div>
+
+          <div id="contacts-message" class="message hidden" style="margin-top:16px"></div>
+
+          <table style="margin-top:20px">
+            <thead>
+              <tr>
+                <th>地域</th><th>都道府県</th><th>団体・氏名</th>
+                <th>区分</th><th>メールアドレス</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="contacts-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- グループ（§31・§32）-->
+      <section id="view-groups" class="hidden">
+        <div class="card">
+          <div class="row">
+            <h2>宛先グループ</h2>
+            <button id="add-group-btn" class="mail-admin-only hidden">＋ グループを作成</button>
+          </div>
+          <p class="muted small" style="margin-top:8px">
+            グループを宛先に選ぶと、メンバーは BCC で送信されます。
+          </p>
+          <div id="groups-message" class="message hidden" style="margin-top:16px"></div>
+          <table style="margin-top:20px">
+            <thead>
+              <tr><th>グループ名</th><th>説明</th><th>宛先数</th><th></th></tr>
+            </thead>
+            <tbody id="groups-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 利用者管理（システム管理者のみ・§6・§10）-->
+      <section id="view-users" class="hidden">
+        <div class="card">
+          <div class="row">
+            <h2>利用者管理</h2>
+            <button id="add-user-btn">＋ 利用者を追加</button>
+          </div>
+          <div id="users-message" class="message hidden" style="margin-top:16px"></div>
+          <table style="margin-top:20px">
+            <thead>
+              <tr>
+                <th>氏名</th><th>メールアドレス</th><th>権限</th>
+                <th>状態</th><th>最終ログイン</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 操作ログ（システム管理者のみ・§41・§42）-->
+      <section id="view-logs" class="hidden">
+        <div class="card">
+          <h2>操作ログ</h2>
+          <p class="muted small" style="margin-top:8px">
+            記録のみ行います。ログの削除・編集はどの権限でもできません。
+          </p>
+
+          <div class="filters" style="margin-top:20px">
+            <input type="text" id="log-keyword" placeholder="対象・内容で検索">
+            <select id="log-action"><option value="">操作 すべて</option></select>
+            <select id="log-user"><option value="">利用者 すべて</option></select>
+          </div>
+          <div class="filters" style="margin-top:12px">
+            <label class="inline-field">
+              <span>期間</span>
+              <input type="date" id="log-from">
+            </label>
+            <label class="inline-field">
+              <span>〜</span>
+              <input type="date" id="log-to">
+            </label>
+            <button type="button" class="secondary" id="log-clear">条件をクリア</button>
+          </div>
+
+          <div id="logs-message" class="message hidden" style="margin-top:16px"></div>
+          <p class="muted small" id="log-count" style="margin-top:16px"></p>
+
+          <table style="margin-top:8px">
+            <thead>
+              <tr><th>日時</th><th>利用者</th><th>操作</th><th>対象</th><th>内容</th></tr>
+            </thead>
+            <tbody id="logs-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- システム設定（システム管理者のみ・§6・§9）-->
+      <section id="view-settings" class="hidden">
+        <div class="card">
+          <h2>システム設定</h2>
+          <div id="settings-fields" class="stack" style="margin-top:24px"></div>
+          <div id="settings-message" class="message hidden" style="margin-top:16px"></div>
+          <div class="row" style="justify-content:flex-end; margin-top:24px">
+            <button type="button" id="settings-save">保存</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- 返信・新規メール作成（§18）と送信内容確認（§20・§21）-->
+<div id="compose-modal" class="modal-backdrop hidden">
+  <div class="modal modal-wide">
+
+    <!-- 入力 -->
+    <div id="compose-form-panel" class="stack">
+      <h2 id="compose-title">返信</h2>
+
+      <!-- 返信では宛先・件名を固定表示、新規メールでは入力欄にする -->
+      <div id="compose-to-fixed">
+        <label>宛先</label>
+        <div class="readonly-field" id="compose-to-text"></div>
+      </div>
+      <div id="compose-subject-fixed">
+        <label>件名</label>
+        <div class="readonly-field" id="compose-subject-text"></div>
+      </div>
+
+      <div id="compose-to-editable" class="hidden">
+        <label for="compose-to">宛先</label>
+        <input type="text" id="compose-to" autocapitalize="off" spellcheck="false"
+               placeholder="グループ名・連絡先で検索、またはカンマ区切りで入力" autocomplete="off">
+        <ul class="suggestions hidden" id="compose-to-suggestions"></ul>
+        <!-- 選択したグループ（§32・§33）-->
+        <div class="group-chips hidden" id="compose-groups"></div>
+      </div>
+      <div id="compose-subject-editable" class="hidden">
+        <label for="compose-subject">件名</label>
+        <input type="text" id="compose-subject" maxlength="500">
+      </div>
+
+      <div>
+        <label for="compose-cc">CC（任意）</label>
+        <input type="text" id="compose-cc" autocapitalize="off" spellcheck="false"
+               placeholder="連絡先を検索、またはカンマ区切りで入力" autocomplete="off">
+        <ul class="suggestions hidden" id="compose-cc-suggestions"></ul>
+      </div>
+      <div>
+        <label for="compose-bcc">BCC（任意）</label>
+        <input type="text" id="compose-bcc" autocapitalize="off" spellcheck="false"
+               placeholder="連絡先を検索、またはカンマ区切りで入力" autocomplete="off">
+        <ul class="suggestions hidden" id="compose-bcc-suggestions"></ul>
+      </div>
+      <div>
+        <label for="compose-body">本文</label>
+        <textarea id="compose-body" rows="12" placeholder="本文を入力してください"></textarea>
+      </div>
+
+      <div>
+        <label for="compose-files">添付ファイル（任意）</label>
+        <input type="file" id="compose-files" multiple>
+        <ul class="file-list" id="compose-file-list"></ul>
+      </div>
+
+      <div id="compose-message" class="message error hidden"></div>
+      <div class="row" style="justify-content:flex-end">
+        <button type="button" class="secondary" id="compose-cancel">キャンセル</button>
+        <button type="button" id="compose-next">送信内容を確認</button>
+      </div>
+    </div>
+
+    <!-- 送信前確認（§20）-->
+    <div id="compose-confirm-panel" class="stack hidden">
+      <h2>送信内容確認</h2>
+      <div id="confirm-quota" class="message hidden"></div>
+      <dl class="confirm" id="confirm-list"></dl>
+      <div>
+        <div class="confirm-label">本文</div>
+        <div class="mail-body confirm-body" id="confirm-body"></div>
+      </div>
+      <div id="confirm-message" class="message error hidden"></div>
+      <div class="row" style="justify-content:space-between">
+        <button type="button" class="secondary" id="confirm-back">戻って修正</button>
+        <button type="button" id="confirm-send">この内容で送信</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- グループの作成・編集とメンバー管理（§31）-->
+<div id="group-modal" class="modal-backdrop hidden">
+  <div class="modal modal-wide stack">
+    <h2 id="group-modal-title">グループを作成</h2>
+    <input type="hidden" id="group-id">
+
+    <div>
+      <label for="group-name">グループ名</label>
+      <input type="text" id="group-name" maxlength="100" placeholder="例：全国地域指導者委員長">
+    </div>
+    <div>
+      <label for="group-description">説明（任意）</label>
+      <input type="text" id="group-description" maxlength="500">
+    </div>
+
+    <div id="group-members-section" class="hidden">
+      <div class="row">
+        <div class="confirm-label" style="margin:0">宛先メンバー（<span id="group-member-count">0</span>件）</div>
+      </div>
+
+      <div class="filters" style="margin-top:12px">
+        <select id="group-add-type">
+          <option value="">区分で追加…</option>
+        </select>
+        <select id="group-add-region">
+          <option value="">地域ブロックで追加…</option>
+        </select>
+        <button type="button" class="secondary" id="group-add-by-filter">まとめて追加</button>
+      </div>
+
+      <div class="member-list" id="group-member-list"></div>
+    </div>
+
+    <div id="group-modal-message" class="message error hidden"></div>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="secondary" id="group-cancel">閉じる</button>
+      <button type="button" id="group-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 連絡先の追加・編集（§36）と変更履歴（§37）-->
+<div id="contact-modal" class="modal-backdrop hidden">
+  <form class="modal stack" id="contact-form">
+    <h2 id="contact-modal-title">連絡先を追加</h2>
+    <input type="hidden" id="contact-id">
+
+    <div class="field-row">
+      <div>
+        <label for="contact-region-input">地域ブロック</label>
+        <select id="contact-region-input"></select>
+      </div>
+      <div>
+        <label for="contact-prefecture">都道府県</label>
+        <input type="text" id="contact-prefecture" maxlength="20">
+      </div>
+    </div>
+
+    <div>
+      <label for="contact-organization">団体名</label>
+      <input type="text" id="contact-organization" required maxlength="100">
+    </div>
+    <div>
+      <label for="contact-type-input">区分</label>
+      <select id="contact-type-input"></select>
+    </div>
+    <div>
+      <label for="contact-name">氏名（任意）</label>
+      <input type="text" id="contact-name" maxlength="100">
+    </div>
+    <div>
+      <label for="contact-email">メールアドレス</label>
+      <input type="email" id="contact-email" required autocapitalize="off" spellcheck="false">
+    </div>
+    <div>
+      <label for="contact-phone">電話番号（任意）</label>
+      <input type="text" id="contact-phone" maxlength="50">
+    </div>
+
+    <div id="contact-history" class="hidden">
+      <div class="confirm-label">変更履歴</div>
+      <div class="history" id="contact-history-list"></div>
+    </div>
+
+    <div id="contact-modal-message" class="message error hidden"></div>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="secondary" id="contact-cancel">キャンセル</button>
+      <button type="submit" id="contact-save">保存</button>
+    </div>
+  </form>
+</div>
+
+<!-- 利用者の追加・編集 -->
+<div id="user-modal" class="modal-backdrop hidden">
+  <form class="modal stack" id="user-form">
+    <h2 id="user-modal-title">利用者を追加</h2>
+    <input type="hidden" id="user-id">
+    <div>
+      <label for="user-name">氏名</label>
+      <input type="text" id="user-name" required maxlength="100">
+    </div>
+    <div>
+      <label for="user-email">メールアドレス（ログイン用）</label>
+      <input type="email" id="user-email" required autocapitalize="off" spellcheck="false">
+    </div>
+    <div>
+      <label for="user-role">権限</label>
+      <select id="user-role">
+        <option value="USER">一般担当者</option>
+        <option value="MAIL_ADMIN">メール管理者</option>
+        <option value="SYSTEM_ADMIN">システム管理者</option>
+      </select>
+    </div>
+    <div id="user-modal-message" class="message error hidden"></div>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="secondary" id="user-cancel">キャンセル</button>
+      <button type="submit" id="user-save">保存</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var TOKEN_KEY = 'jaqua_mail_token';
+  var currentUser = null;
+
+  var ROLE_LABEL = {
+    USER: '一般担当者',
+    MAIL_ADMIN: 'メール管理者',
+    SYSTEM_ADMIN: 'システム管理者'
+  };
+
+  /* ── 基本ユーティリティ ── */
+
+  function $(id) { return document.getElementById(id); }
+
+  function show(el, visible) {
+    if (typeof el === 'string') el = $(el);
+    el.classList.toggle('hidden', !visible);
+  }
+
+  function getToken() {
+    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function setToken(token) {
+    try {
+      if (token) localStorage.setItem(TOKEN_KEY, token);
+      else localStorage.removeItem(TOKEN_KEY);
+    } catch (e) { /* プライベートモード等では保持しない */ }
+  }
+
+  /** サーバー API を Promise で呼ぶ。 */
+  // 通信にかかった時間を記録する（画面が重いときの原因調査用。コンソールで確認できる）
+  window.__apiTimings = [];
+
+  function api(name) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    var startedAt = Date.now();
+    var record = function () {
+      var ms = Date.now() - startedAt;
+      window.__apiTimings.push({ api: name, ms: ms });
+      if (window.__apiTimings.length > 200) window.__apiTimings.shift();
+      if (window.console && console.info) console.info('[api] ' + name + ' ' + ms + 'ms');
+    };
+    var finish = function (res, resolve, reject) {
+      record();
+      if (res && res.ok) return resolve(res.data);
+      if (res && res.code === 'SESSION_EXPIRED') forceLogout(res.error);
+      reject(new Error((res && res.error) || '処理に失敗しました。'));
+    };
+    // GitHub Pages など Google の外に置いた画面：fetch で Apps Script の doPost を呼ぶ
+    if (window.JAQUA_API_URL) {
+      return fetch(window.JAQUA_API_URL, {
+        method: 'POST',
+        // text/plain にすると CORS の事前確認（preflight）が不要になる
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ fn: name, args: args }),
+        credentials: 'omit',
+        redirect: 'follow'
+      }).then(function (r) { return r.json(); }).then(function (res) {
+        return new Promise(function (resolve, reject) { finish(res, resolve, reject); });
+      }, function () {
+        record();
+        throw new Error('通信に失敗しました。ネットワークを確認して、もう一度お試しください。');
+      });
+    }
+    return new Promise(function (resolve, reject) {
+      google.script.run
+        .withSuccessHandler(function (res) { finish(res, resolve, reject); })
+        .withFailureHandler(function (err) {
+          record();
+          reject(new Error(err && err.message ? err.message : '通信に失敗しました。'));
+        })[name].apply(null, args);
+    });
+  }
+
+  function setMessage(elId, text, type) {
+    var el = $(elId);
+    el.textContent = text || '';
+    el.className = 'message ' + (type || 'info');
+    show(el, !!text);
+  }
+
+  function busy(button, isBusy, busyLabel) {
+    if (isBusy) {
+      button.dataset.label = button.textContent;
+      button.textContent = busyLabel || '処理中…';
+      button.disabled = true;
+    } else {
+      if (button.dataset.label) button.textContent = button.dataset.label;
+      button.disabled = false;
+    }
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    var pad = function (n) { return ('0' + n).slice(-2); };
+    return d.getFullYear() + '/' + pad(d.getMonth() + 1) + '/' + pad(d.getDate()) +
+      ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  /* ── ログイン（§7）── */
+
+  var pendingEmail = '';
+
+  $('email-step').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = $('email').value.trim();
+    var btn = $('send-code-btn');
+    setMessage('login-message', '');
+    busy(btn, true, '送信中…');
+
+    api('apiRequestAuthCode', email).then(function (res) {
+      pendingEmail = email;
+      show('email-step', false);
+      show('code-step', true);
+      setMessage('login-message', res.message, 'info');
+      $('code').focus();
+    }).catch(function (err) {
+      setMessage('login-message', err.message, 'error');
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  $('code-step').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = $('verify-btn');
+    setMessage('login-message', '');
+    busy(btn, true, '確認中…');
+
+    api('apiVerifyAuthCode', pendingEmail, $('code').value.trim()).then(function (res) {
+      setToken(res.token);
+      enterApp(res);
+    }).catch(function (err) {
+      setMessage('login-message', err.message, 'error');
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  $('back-to-email').addEventListener('click', function () {
+    show('code-step', false);
+    show('email-step', true);
+    $('code').value = '';
+    setMessage('login-message', '');
+  });
+
+  $('logout-btn').addEventListener('click', function () {
+    api('apiLogout', getToken()).catch(function () { /* 失敗してもローカルは破棄する */ })
+      .then(function () { forceLogout(''); });
+  });
+
+  function forceLogout(message) {
+    setToken('');
+    currentUser = null;
+    show('app-view', false);
+    show('login-view', true);
+    show('code-step', false);
+    show('email-step', true);
+    $('code').value = '';
+    setMessage('login-message', message || '', message ? 'info' : 'info');
+  }
+
+  var assignableUsers = [];
+  var selectableStatuses = [];
+
+  // data: {user, statuses, assignableUsers}（ログイン時・起動時にまとめて受け取る）
+  function enterApp(data) {
+    var user = data.user;
+    currentUser = user;
+    selectableStatuses = data.statuses || [];
+    assignableUsers = data.assignableUsers || [];
+    $('who').textContent = user.name + '（' + (ROLE_LABEL[user.role] || user.role) + '）';
+    document.querySelectorAll('.admin-only').forEach(function (el) {
+      el.classList.toggle('hidden', !user.isSystemAdmin);
+    });
+    document.querySelectorAll('.mail-admin-only').forEach(function (el) {
+      el.classList.toggle('hidden', !user.isMailAdmin);
+    });
+    show('login-view', false);
+    show('app-view', true);
+
+    switchView('home');
+  }
+
+  /* ── 画面切り替え ── */
+
+  $('nav').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-view]');
+    if (btn) switchView(btn.dataset.view);
+  });
+
+  function switchView(name) {
+    document.querySelectorAll('#nav button').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.view === name);
+    });
+    show('view-home', name === 'home');
+    show('view-contacts', name === 'contacts');
+    show('view-groups', name === 'groups');
+    show('view-users', name === 'users');
+    show('view-logs', name === 'logs');
+    show('view-settings', name === 'settings');
+    closeDetail();
+    if (name === 'users') loadUsers();
+    if (name === 'contacts') loadContacts();
+    if (name === 'groups') loadGroups();
+    if (name === 'logs') loadLogs();
+    if (name === 'settings') loadSettings();
+    if (name === 'home') loadDashboard();
+  }
+
+  /* ── ダッシュボード（§11・§12・§14）── */
+
+  var STATUS_MARK = {
+    UNASSIGNED: '●',
+    UNANSWERED: '●',
+    IN_PROGRESS: '◐',
+    HOLD: '⏸',
+    COMPLETED: '✓',
+    NO_ACTION: '—'
+  };
+
+  var currentFilter = 'UNASSIGNED';
+  var currentThreadId = '';
+  var statusLabels = {};
+  var dashboardScope = 'ALL';   // ALL：全メール（管理者）／MINE：自分の担当分のみ
+
+  function loadDashboard() {
+    // 管理者は未割当、担当者は自分の未対応を初期表示する（§12・§14）
+    // 一覧が件数取得を待たずに描画されても表記がぶれないよう、範囲は先に確定させる
+    dashboardScope = currentUser && currentUser.isMailAdmin ? 'ALL' : 'MINE';
+    currentFilter = currentUser && currentUser.isMailAdmin ? 'UNASSIGNED' : 'UNANSWERED';
+    $('dash-subheading').textContent = currentUser && currentUser.isMailAdmin
+      ? '委員会に届いた全メールの対応状況'
+      : '自分に割り当てられたメール';
+    loadDashboardOnce();
+  }
+
+  // 件数と一覧を1回の呼び出しで取得する（別々に呼ぶより速い）
+  function loadDashboardOnce() {
+    var tbody = $('threads-tbody');
+    tbody.innerHTML = '<tr><td colspan="4" class="muted">読み込み中…</td></tr>';
+    setMessage('list-message', '');
+
+    api('apiGetDashboard', getToken(), {
+      status: currentFilter,
+      keyword: $('list-search').value.trim()
+    }).then(function (res) {
+      renderStats(res.stats);
+      renderThreads(res.threads);
+    }).catch(function (err) {
+      tbody.innerHTML = '';
+      setMessage('list-message', err.message, 'error');
+    });
+  }
+
+  function loadStats() {
+    api('apiGetDashboardStats', getToken()).then(renderStats).catch(function (err) {
+      setMessage('list-message', err.message, 'error');
+    });
+  }
+
+  function renderStats(stats) {
+    statusLabels = stats.labels;
+    dashboardScope = stats.scope;
+    // 担当者の一覧は全行が自分なので、担当者名ではなく状態を出す
+    $('col-last-head').textContent = stats.scope === 'MINE' ? '状態' : '担当';
+    var container = $('stats');
+    container.innerHTML = '';
+    stats.order.forEach(function (status) {
+      // 担当者には「未割当」を出さない（割当は管理者の作業のため）
+      if (status === 'UNASSIGNED' && stats.scope === 'MINE') return;
+      container.appendChild(statCard(status, stats.counts[status], stats.labels[status], stats.scope));
+    });
+    markSelectedStat();
+  }
+
+  function statCard(status, count, label, scope) {
+    var btn = document.createElement('button');
+    // 管理者は未割当、担当者は未対応を最も大きく表示する（§11・§14）
+    var isPrimary = scope === 'MINE' ? status === 'UNANSWERED' : status === 'UNASSIGNED';
+    btn.className = 'stat' + (isPrimary ? ' primary' : '');
+    btn.dataset.status = status;
+
+    var labelEl = document.createElement('span');
+    labelEl.className = 'label';
+    labelEl.textContent = (STATUS_MARK[status] || '') + ' ' +
+      (scope === 'MINE' && status === 'UNANSWERED' ? '自分の未対応' : label);
+    btn.appendChild(labelEl);
+
+    var valueEl = document.createElement('span');
+    valueEl.className = 'value';
+    valueEl.textContent = count;
+    btn.appendChild(valueEl);
+
+    btn.addEventListener('click', function () {
+      currentFilter = status;
+      markSelectedStat();
+      loadThreads();
+    });
+    return btn;
+  }
+
+  function markSelectedStat() {
+    document.querySelectorAll('#stats .stat').forEach(function (el) {
+      el.classList.toggle('selected', el.dataset.status === currentFilter);
+    });
+    // 担当者には「自分の未対応」のように、自分の案件であることを明示する（§14）
+    var label = statusLabels[currentFilter] || '';
+    var scoped = dashboardScope === 'MINE' ? '自分の' + label : label + 'メール';
+    $('dash-heading').textContent = scoped;
+    $('list-title').textContent = scoped + ' の一覧';
+  }
+
+  // 通常は10分ごとの自動取込。すぐ確認したいときのための手動実行（§3）
+  $('fetch-btn').addEventListener('click', function () {
+    var btn = $('fetch-btn');
+    busy(btn, true, '取込中…');
+    setMessage('fetch-message', '');
+
+    api('apiRunFetchNow', getToken()).then(function (result) {
+      if (result.skipped) {
+        setMessage('fetch-message', '取込処理が実行中です。しばらくお待ちください。', 'info');
+        return;
+      }
+      var text = result.imported
+        ? '新着 ' + result.imported + ' 件を取り込みました。'
+        : '新着はありませんでした。';
+      if (result.reopened) text += '（' + result.reopened + ' 件を未対応へ戻しました）';
+      setMessage('fetch-message', text, 'info');
+      loadDashboardOnce();
+    }).catch(function (err) {
+      setMessage('fetch-message', err.message, 'error');
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  var searchTimer = null;
+  $('list-search').addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadThreads, 250);
+  });
+
+  function loadThreads() {
+    var tbody = $('threads-tbody');
+    tbody.innerHTML = '<tr><td colspan="4" class="muted">読み込み中…</td></tr>';
+    setMessage('list-message', '');
+
+    api('apiListThreads', getToken(), {
+      status: currentFilter,
+      keyword: $('list-search').value.trim()
+    }).then(renderThreads).catch(function (err) {
+      $('threads-tbody').innerHTML = '';
+      setMessage('list-message', err.message, 'error');
+    });
+  }
+
+  function renderThreads(threads) {
+    var tbody = $('threads-tbody');
+    tbody.innerHTML = '';
+    if (!threads.length) {
+      var empty = document.createElement('tr');
+      var td = document.createElement('td');
+      td.colSpan = 4;
+      td.className = 'muted center';
+      td.style.padding = '32px 0';
+      td.textContent = '該当するメールはありません。';
+      empty.appendChild(td);
+      tbody.appendChild(empty);
+      return;
+    }
+    threads.forEach(function (t) { tbody.appendChild(threadRow(t)); });
+  }
+
+  function threadRow(t) {
+    var tr = document.createElement('tr');
+    tr.className = 'thread';
+    tr.dataset.threadId = t.threadId;
+
+    var received = cell('受信', formatReceived(t.receivedAt));
+    received.className = 'nowrap muted';
+    tr.appendChild(received);
+
+    var from = cell('送信者', t.fromName || t.fromEmail);
+    from.title = t.fromEmail || '';
+    tr.appendChild(from);
+
+    var subject = cell('件名', t.subject);
+    subject.className = 'subject';
+    subject.title = t.subject;
+    tr.appendChild(subject);
+
+    // 管理者は「誰が担当か」、担当者は「自分の案件がどの状態か」を知りたい
+    var showStatus = dashboardScope === 'MINE' || !t.assignedUserName;
+    var badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = showStatus
+      ? (STATUS_MARK[t.status] || '') + ' ' + t.statusLabel
+      : t.assignedUserName;
+    tr.appendChild(cell(showStatus ? '状態' : '担当', badge));
+
+    tr.addEventListener('click', function () { openThread(t.threadId); });
+    return tr;
+  }
+
+  /** 当日は時刻、それ以外は日付を表示する。 */
+  function formatReceived(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    var pad = function (n) { return ('0' + n).slice(-2); };
+    var today = new Date();
+    var sameDay = d.getFullYear() === today.getFullYear() &&
+      d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+    return sameDay
+      ? pad(d.getHours()) + ':' + pad(d.getMinutes())
+      : (d.getMonth() + 1) + '/' + d.getDate();
+  }
+
+  /* ── メール詳細（§15）── */
+
+  function openThread(threadId) {
+    currentThreadId = threadId;
+    document.querySelectorAll('#threads-tbody tr.thread').forEach(function (tr) {
+      tr.classList.toggle('selected', tr.dataset.threadId === threadId);
+    });
+    document.body.classList.add('detail-open');
+    $('detail-body').innerHTML = '<p class="muted center" style="padding:40px 0">読み込み中…</p>';
+
+    api('apiGetThreadDetail', getToken(), threadId)
+      .then(renderThreadDetail)
+      .catch(function (err) {
+        $('detail-body').innerHTML = '';
+        $('detail-body').appendChild(errorBlock(err.message));
+      });
+  }
+
+  function closeDetail() {
+    document.body.classList.remove('detail-open');
+  }
+
+  $('detail-back').addEventListener('click', closeDetail);
+
+  function renderThreadDetail(detail) {
+    var root = $('detail-body');
+    root.innerHTML = '';
+
+    var header = document.createElement('div');
+    header.className = 'row';
+    header.style.marginBottom = '12px';
+
+    var title = document.createElement('h2');
+    title.textContent = detail.subject;
+    header.appendChild(title);
+
+    var status = document.createElement('span');
+    status.className = 'badge on';
+    status.textContent = (STATUS_MARK[detail.status] || '') + ' ' + detail.statusLabel;
+    header.appendChild(status);
+    root.appendChild(header);
+
+    var assigned = document.createElement('p');
+    assigned.className = 'meta';
+    assigned.textContent = '担当者：' + (detail.assignedUserName || '未割当');
+    root.appendChild(assigned);
+
+    var actions = actionPanel(detail);
+    if (actions) root.appendChild(actions);
+
+    detail.messages.forEach(function (m, index) {
+      root.appendChild(messageBlock(m, index === detail.messages.length - 1));
+    });
+
+    if (detail.history.length) {
+      var historyTitle = document.createElement('h3');
+      historyTitle.textContent = '対応履歴';
+      historyTitle.style.marginTop = '24px';
+      root.appendChild(historyTitle);
+
+      var list = document.createElement('ul');
+      list.className = 'meta';
+      list.style.paddingLeft = '20px';
+      detail.history.forEach(function (h) {
+        var li = document.createElement('li');
+        li.textContent = formatDateTime(h.assignedAt) + '　' +
+          h.assignedByName + ' が ' + h.assignedUserName + ' へ割り当て';
+        list.appendChild(li);
+      });
+      root.appendChild(list);
+    }
+
+    var note = document.createElement('p');
+    note.className = 'muted small';
+    note.style.marginTop = '24px';
+    note.textContent = '返信・新規メール送信は STEP 7 で実装します。';
+    root.appendChild(note);
+  }
+
+  /** 担当割当（§13）と対応開始・ステータス変更（§5・§16）の操作欄。 */
+  function actionPanel(detail) {
+    var panel = document.createElement('div');
+    panel.className = 'actions';
+
+    var canOperate = currentUser.isMailAdmin ||
+      detail.assignedUserId === currentUser.userId;
+
+    // 担当者割当はメール管理者以上のみ（§6）
+    if (currentUser.isMailAdmin) {
+      var assignRow = document.createElement('div');
+      assignRow.className = 'action-row';
+
+      var assignLabel = document.createElement('label');
+      assignLabel.textContent = '担当者';
+      assignLabel.htmlFor = 'assign-select';
+      assignRow.appendChild(assignLabel);
+
+      var controls = document.createElement('div');
+      controls.className = 'action-controls';
+
+      var select = document.createElement('select');
+      select.id = 'assign-select';
+      var placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '選択してください';
+      select.appendChild(placeholder);
+      assignableUsers.forEach(function (u) {
+        var option = document.createElement('option');
+        option.value = u.userId;
+        option.textContent = u.name;
+        if (u.userId === detail.assignedUserId) option.selected = true;
+        select.appendChild(option);
+      });
+      controls.appendChild(select);
+
+      var assignBtn = document.createElement('button');
+      assignBtn.textContent = detail.assignedUserId ? '担当を変更する' : '割り当てる';
+      assignBtn.addEventListener('click', function () {
+        if (!select.value) {
+          setActionMessage(panel, '担当者を選択してください。', 'error');
+          return;
+        }
+        busy(assignBtn, true, '割当中…');
+        api('apiAssignThread', getToken(), detail.threadId, select.value)
+          .then(function () { afterThreadChange(detail.threadId); })
+          .catch(function (err) {
+            busy(assignBtn, false);
+            setActionMessage(panel, err.message, 'error');
+          });
+      });
+      controls.appendChild(assignBtn);
+      assignRow.appendChild(controls);
+      panel.appendChild(assignRow);
+    }
+
+    if (canOperate) {
+      // 返信ボタンはメール詳細に常に置く（§17）
+      var replyBtn = document.createElement('button');
+      replyBtn.textContent = '返信する';
+      replyBtn.style.marginTop = '12px';
+      replyBtn.addEventListener('click', function () {
+        openReply(detail.threadId, replyBtn, panel);
+      });
+      panel.appendChild(replyBtn);
+
+      // 未対応なら「対応を開始」を前面に出す（§16）
+      if (detail.status === 'UNANSWERED') {
+        var startBtn = document.createElement('button');
+        startBtn.textContent = '対応を開始';
+        startBtn.style.marginTop = '12px';
+        startBtn.addEventListener('click', function () {
+          busy(startBtn, true);
+          api('apiStartWork', getToken(), detail.threadId)
+            .then(function () { afterThreadChange(detail.threadId); })
+            .catch(function (err) {
+              busy(startBtn, false);
+              setActionMessage(panel, err.message, 'error');
+            });
+        });
+        panel.appendChild(startBtn);
+      }
+
+      if (detail.assignedUserId) {
+        var statusRow = document.createElement('div');
+        statusRow.className = 'action-row';
+
+        var statusLabel = document.createElement('label');
+        statusLabel.textContent = 'ステータス';
+        statusLabel.htmlFor = 'status-select';
+        statusRow.appendChild(statusLabel);
+
+        var statusControls = document.createElement('div');
+        statusControls.className = 'action-controls';
+
+        var statusSelect = document.createElement('select');
+        statusSelect.id = 'status-select';
+        selectableStatuses.forEach(function (s) {
+          var option = document.createElement('option');
+          option.value = s.status;
+          option.textContent = s.label;
+          if (s.status === detail.status) option.selected = true;
+          statusSelect.appendChild(option);
+        });
+        statusControls.appendChild(statusSelect);
+
+        var statusBtn = document.createElement('button');
+        statusBtn.className = 'secondary';
+        statusBtn.textContent = '変更する';
+        statusBtn.addEventListener('click', function () {
+          changeStatus(panel, statusBtn, detail.threadId, statusSelect.value);
+        });
+        statusControls.appendChild(statusBtn);
+        statusRow.appendChild(statusControls);
+        panel.appendChild(statusRow);
+      } else if (detail.status !== 'NO_ACTION') {
+        // 未割当のうちは対応不要にするしか選べない（担当者が要らないメールを閉じるため）
+        var noActionBtn = document.createElement('button');
+        noActionBtn.className = 'secondary';
+        noActionBtn.style.marginTop = '12px';
+        noActionBtn.textContent = '対応不要にする';
+        noActionBtn.addEventListener('click', function () {
+          changeStatus(panel, noActionBtn, detail.threadId, 'NO_ACTION');
+        });
+        panel.appendChild(noActionBtn);
+      }
+    }
+
+    // 操作できることが何も無い場合は空の枠を出さない
+    if (!panel.childNodes.length) return null;
+
+    var box = document.createElement('div');
+    box.className = 'message hidden action-message';
+    panel.appendChild(box);
+
+    return panel;
+  }
+
+  function changeStatus(panel, button, threadId, status) {
+    busy(button, true);
+    api('apiChangeThreadStatus', getToken(), threadId, status)
+      .then(function () { afterThreadChange(threadId); })
+      .catch(function (err) {
+        busy(button, false);
+        setActionMessage(panel, err.message, 'error');
+      });
+  }
+
+  function setActionMessage(panel, text, type) {
+    var box = panel.querySelector('.action-message');
+    box.textContent = text;
+    box.className = 'message action-message ' + (type || 'info');
+  }
+
+  /** 割当・ステータス変更のあとは件数・一覧・詳細をまとめて更新する。 */
+  function afterThreadChange(threadId) {
+    loadDashboardOnce();
+    openThread(threadId);
+  }
+
+  function messageBlock(m, isLast) {
+    var wrap = document.createElement('div');
+    wrap.style.borderTop = '1px solid var(--border)';
+    wrap.style.paddingTop = '16px';
+    wrap.style.marginTop = '16px';
+
+    var meta = document.createElement('dl');
+    meta.className = 'meta';
+    [
+      ['送信者', m.fromName ? m.fromName + '（' + m.from + '）' : m.from],
+      ['To', m.to],
+      ['CC', m.cc],
+      ['受信日時', formatDateTime(m.receivedAt)],
+      ['添付', m.attachmentCount ? m.attachmentCount + '件' : '']
+    ].forEach(function (pair) {
+      if (!pair[1]) return;
+      var dt = document.createElement('dt');
+      dt.textContent = pair[0];
+      var dd = document.createElement('dd');
+      dd.textContent = pair[1];
+      meta.appendChild(dt);
+      meta.appendChild(dd);
+    });
+    wrap.appendChild(meta);
+
+    var body = document.createElement('div');
+    body.className = 'mail-body';
+    body.style.marginTop = '16px';
+    body.textContent = m.body;
+    if (!isLast) {
+      body.style.maxHeight = '140px';
+      body.style.overflow = 'hidden';
+      body.style.color = 'var(--text-secondary)';
+    }
+    wrap.appendChild(body);
+    return wrap;
+  }
+
+  /* ── 返信の作成と送信（§17〜§23）── */
+
+  var composeDraft = null;     // {threadId, draftId, to, subject}
+  var composeFiles = [];       // [{name, mimeType, data}]
+
+  function openReply(threadId, triggerButton, panel) {
+    busy(triggerButton, true, '準備中…');
+    api('apiBuildReplyDraft', getToken(), threadId).then(function (draft) {
+      resetCompose(draft, '返信', true);
+      $('compose-body').focus();
+    }).catch(function (err) {
+      setActionMessage(panel, err.message, 'error');
+    }).then(function () {
+      busy(triggerButton, false);
+    });
+  }
+
+  // ＋新規メール（§25・§26）
+  $('new-mail-btn').addEventListener('click', function () {
+    var btn = $('new-mail-btn');
+    busy(btn, true, '準備中…');
+    api('apiBuildNewMailDraft', getToken()).then(function (draft) {
+      resetCompose(draft, '新規メール', false);
+      $('compose-to').focus();
+    }).catch(function (err) {
+      alert(err.message);
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  /** 返信と新規メールで共通の作成画面を組み立てる。 */
+  function resetCompose(draft, title, isReply) {
+    composeDraft = draft;
+    composeFiles = [];
+    selectedGroups = [];
+    renderGroupChips();
+
+    $('compose-title').textContent = title;
+    // 返信の宛先・件名は変更させない（§18・誤送信防止）
+    show('compose-to-fixed', isReply);
+    show('compose-subject-fixed', isReply);
+    show('compose-to-editable', !isReply);
+    show('compose-subject-editable', !isReply);
+
+    $('compose-to-text').textContent = draft.to || '';
+    $('compose-subject-text').textContent = draft.subject || '';
+    $('compose-to').value = '';
+    $('compose-subject').value = '';
+    $('compose-cc').value = '';
+    $('compose-bcc').value = '';
+    $('compose-body').value = '';
+    $('compose-files').value = '';
+    $('compose-file-list').innerHTML = '';
+    selectedFileCount = 0;
+    filesLoading = false;
+    updateNextButton();
+
+    showComposeStep('form');
+    show('compose-modal', true);
+  }
+
+  /* 添付ファイル（§26）：base64 にしてサーバーへ渡す */
+
+  // 添付の読み込み状態。読み込み（非同期）が終わる前に確認へ進むと、添付なしで送られてしまうため、
+  // 読み込み中・失敗のあいだは「送信内容を確認」を押せなくする。
+  var filesLoading = false;
+  var selectedFileCount = 0;
+
+  function updateNextButton() {
+    var btn = $('compose-next');
+    btn.disabled = filesLoading;
+    btn.textContent = filesLoading ? '添付ファイルを読み込み中…' : '送信内容を確認';
+  }
+
+  $('compose-files').addEventListener('change', function (e) {
+    var files = Array.prototype.slice.call(e.target.files || []);
+    composeFiles = [];
+    selectedFileCount = files.length;
+    $('compose-file-list').innerHTML = '';
+    show('compose-message', false);
+    if (!files.length) {
+      filesLoading = false;
+      updateNextButton();
+      return;
+    }
+
+    filesLoading = true;
+    updateNextButton();
+    Promise.all(files.map(readFileAsBase64)).then(function (items) {
+      composeFiles = items;
+      renderFileList(items);
+    }).catch(function (err) {
+      composeFiles = [];
+      var box = $('compose-message');
+      box.textContent = '添付ファイルの読み込みに失敗しました：' + err.message +
+        '（ファイルを選び直してください）';
+      show(box, true);
+    }).then(function () {
+      filesLoading = false;
+      updateNextButton();
+    });
+  });
+
+  function readFileAsBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        // data URL の "data:...;base64," を取り除く
+        var result = String(reader.result);
+        resolve({
+          name: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          data: result.substring(result.indexOf(',') + 1),
+          size: file.size
+        });
+      };
+      reader.onerror = function () { reject(new Error(file.name)); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderFileList(items) {
+    var list = $('compose-file-list');
+    list.innerHTML = '';
+    items.forEach(function (item) {
+      var li = document.createElement('li');
+      var name = document.createElement('span');
+      name.textContent = item.name;
+      var size = document.createElement('span');
+      size.textContent = formatBytes(item.size);
+      li.appendChild(name);
+      li.appendChild(size);
+      list.appendChild(li);
+    });
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  function showComposeStep(step) {
+    show('compose-form-panel', step === 'form');
+    show('compose-confirm-panel', step === 'confirm');
+    show('compose-message', false);
+    show('confirm-message', false);
+  }
+
+  function closeCompose() {
+    show('compose-modal', false);
+    composeDraft = null;
+  }
+
+  $('compose-cancel').addEventListener('click', function () {
+    if ($('compose-body').value.trim() &&
+        !confirm('入力した内容は保存されません。閉じてよろしいですか？')) return;
+    closeCompose();
+  });
+
+  $('confirm-back').addEventListener('click', function () { showComposeStep('form'); });
+
+  /** 現在の入力内容をサーバー形式の下書きにする。 */
+  function currentDraft() {
+    return {
+      threadId: composeDraft.threadId,
+      draftId: composeDraft.draftId,
+      to: composeDraft.threadId ? '' : $('compose-to').value,
+      subject: composeDraft.threadId ? '' : $('compose-subject').value,
+      cc: $('compose-cc').value,
+      bcc: $('compose-bcc').value,
+      body: $('compose-body').value,
+      groupIds: selectedGroups.map(function (g) { return g.groupId; }),
+      attachments: composeFiles
+    };
+  }
+
+  // 「送信」を押しても即時送信せず、確認画面を挟む（§20）
+  $('compose-next').addEventListener('click', function () {
+    var btn = $('compose-next');
+    show('compose-message', false);
+
+    // 画面で選んだファイルが、送信用に読み込まれていない状態では、先へ進めない
+    if (filesLoading || composeFiles.length !== selectedFileCount) {
+      var warn = $('compose-message');
+      warn.textContent = '添付ファイルが読み込まれていません。ファイルを選び直してください。';
+      show(warn, true);
+      return;
+    }
+    busy(btn, true, '確認中…');
+
+    api('apiPreviewSend', getToken(), currentDraft()).then(function (plan) {
+      renderConfirm(plan);
+      showComposeStep('confirm');
+    }).catch(function (err) {
+      var box = $('compose-message');
+      box.textContent = err.message;
+      show(box, true);
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  function renderConfirm(plan) {
+    var list = $('confirm-list');
+    list.innerHTML = '';
+    renderDeliveryNotice(plan.delivery);
+
+    // グループ宛はまず件数で示す（§33・§34）
+    if (plan.groups && plan.groups.length) {
+      var groupDt = document.createElement('dt');
+      groupDt.textContent = 'グループ';
+      list.appendChild(groupDt);
+
+      var groupDd = document.createElement('dd');
+      plan.groups.forEach(function (g) {
+        var line = document.createElement('div');
+        line.textContent = g.name;
+        var count = document.createElement('span');
+        count.className = 'count';
+        count.textContent = g.memberCount + '件・BCC';
+        line.appendChild(count);
+        groupDd.appendChild(line);
+      });
+      list.appendChild(groupDd);
+    }
+
+    // 宛先は件数を添えて大きく出す（§20・§34）
+    [['宛先', plan.to], ['CC', plan.cc], ['BCC', plan.bcc]].forEach(function (pair) {
+      var dt = document.createElement('dt');
+      dt.textContent = pair[0];
+      list.appendChild(dt);
+
+      var dd = document.createElement('dd');
+      if (pair[1].length) {
+        // 件数が多いときは全部並べず、先頭だけ見せて件数で示す（§34）
+        var shown = pair[1].slice(0, 5);
+        dd.textContent = shown.join('、') +
+          (pair[1].length > shown.length ? ' ほか' + (pair[1].length - shown.length) + '件' : '');
+        var count = document.createElement('span');
+        count.className = 'count';
+        count.textContent = pair[1].length + '件';
+        dd.appendChild(count);
+      } else {
+        dd.className = 'empty';
+        dd.textContent = '0件';
+      }
+      list.appendChild(dd);
+    });
+
+    var subjectDt = document.createElement('dt');
+    subjectDt.textContent = '件名';
+    list.appendChild(subjectDt);
+    var subjectDd = document.createElement('dd');
+    subjectDd.textContent = plan.subject;
+    list.appendChild(subjectDd);
+
+    var attachmentDt = document.createElement('dt');
+    attachmentDt.textContent = '添付ファイル';
+    list.appendChild(attachmentDt);
+    var attachmentDd = document.createElement('dd');
+    if (plan.attachments && plan.attachments.length) {
+      attachmentDd.textContent = plan.attachments.map(function (a) { return a.name; }).join('、');
+      var attachmentCount = document.createElement('span');
+      attachmentCount.className = 'count';
+      attachmentCount.textContent = plan.attachments.length + '件';
+      attachmentDd.appendChild(attachmentCount);
+    } else {
+      attachmentDd.className = 'empty';
+      attachmentDd.textContent = 'なし';
+    }
+    list.appendChild(attachmentDd);
+
+    $('confirm-body').textContent = plan.body;
+  }
+
+  // 送信の通数と、送信枠の消費を知らせる。
+  //  ・新規メール（Gmail本体の送信口）：24時間あたりの上限に対する、今日の送信数を示す
+  //  ・返信（Apps Scriptの送信枠）：残りが少ないと、認証コードのメールも送れなくなる
+  var LOW_QUOTA = 20;
+
+  function renderDeliveryNotice(d) {
+    var box = $('confirm-quota');
+    if (!d) { show(box, false); return; }
+
+    var parts = [];
+    var low;
+
+    if (d.route === 'GMAIL_SERVICE') {
+      low = d.remainingAfter < 50;
+      if (d.messageCount > 1) {
+        parts.push('宛先が多いため、' + d.messageCount + '通に分けて送信します。');
+      }
+      parts.push('直近24時間の新規メールの送信は、これまで' + d.usedToday + '件。この送信で' +
+        d.quotaNeeded + '件を加え、' + (d.usedToday + d.quotaNeeded) + '件（上限' + d.dailyLimit + '件）になります。');
+      if (low) parts.push('上限に近づいています。上限を超える送信は、24時間たつまで送れません。');
+    } else {
+      low = d.remainingAfter < LOW_QUOTA;
+      parts.push('本日の送信枠を' + d.quotaNeeded + '件使います（残り' + d.quotaRemaining +
+        '件 → 送信後' + d.remainingAfter + '件）。');
+      if (low) {
+        parts.push('残りが無くなると、ログイン用の認証コードや返信のメールが、24時間ほど送れなくなります。');
+      }
+    }
+
+    box.textContent = parts.join('');
+    box.className = 'message ' + (low ? 'error' : 'info');
+  }
+
+  $('confirm-send').addEventListener('click', function () {
+    var btn = $('confirm-send');
+    // 二重送信防止：ボタンを落としたうえで、サーバー側も draftId で判定する（§22）
+    busy(btn, true, '送信中…');
+    show('confirm-message', false);
+
+    var threadId = composeDraft.threadId;
+    api('apiSendMail', getToken(), currentDraft()).then(function (result) {
+      closeCompose();
+      if (result.isReply) {
+        setMessage('fetch-message', '送信しました。（' + result.statusLabel + 'へ変更）', 'info');
+        afterThreadChange(threadId);
+      } else {
+        setMessage('fetch-message',
+          '送信しました。（宛先 ' + result.counts.total + '件・経路 ' + result.route + '）', 'info');
+      }
+    }).catch(function (err) {
+      var box = $('confirm-message');
+      box.textContent = err.message;
+      show(box, true);
+      busy(btn, false);
+    });
+  });
+
+  function errorBlock(text) {
+    var el = document.createElement('div');
+    el.className = 'message error';
+    el.textContent = text;
+    return el;
+  }
+
+  /* ── 連絡先（§27〜§30・§36・§37）── */
+
+  var contactOptions = { regions: [], types: [] };
+  var contactFilterTimer = null;
+
+  function loadContactOptions() {
+    return api('apiListContactOptions', getToken()).then(function (options) {
+      contactOptions = options;
+
+      fillOptions($('contact-region'), options.regions.map(function (r) {
+        return { value: r, label: r };
+      }), '地域ブロック すべて');
+      fillOptions($('contact-type'), options.types.map(function (t) {
+        return { value: t.type, label: t.label };
+      }), '区分 すべて');
+      fillOptions($('contact-region-input'), options.regions.map(function (r) {
+        return { value: r, label: r };
+      }), '選択しない');
+      fillOptions($('contact-type-input'), options.types.map(function (t) {
+        return { value: t.type, label: t.label };
+      }), null);
+    });
+  }
+
+  function fillOptions(select, items, placeholder) {
+    select.innerHTML = '';
+    if (placeholder !== null && placeholder !== undefined) {
+      var head = document.createElement('option');
+      head.value = '';
+      head.textContent = placeholder;
+      select.appendChild(head);
+    }
+    items.forEach(function (item) {
+      var option = document.createElement('option');
+      option.value = item.value;
+      option.textContent = item.label;
+      select.appendChild(option);
+    });
+  }
+
+  function loadContacts() {
+    var tbody = $('contacts-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" class="muted">読み込み中…</td></tr>';
+    setMessage('contacts-message', '');
+
+    var ready = contactOptions.regions.length ? Promise.resolve() : loadContactOptions();
+
+    ready.then(function () {
+      return api('apiListContacts', getToken(), {
+        keyword: $('contact-keyword').value,
+        region: $('contact-region').value,
+        type: $('contact-type').value,
+        // 管理者には無効化した連絡先も見せる（§36）
+        includeInactive: currentUser.isMailAdmin
+      });
+    }).then(function (contacts) {
+      tbody.innerHTML = '';
+      if (!contacts.length) {
+        tbody.appendChild(emptyRow(6, '該当する連絡先がありません。'));
+        return;
+      }
+      contacts.forEach(function (c) { tbody.appendChild(contactRow(c)); });
+    }).catch(function (err) {
+      tbody.innerHTML = '';
+      setMessage('contacts-message', err.message, 'error');
+    });
+  }
+
+  function emptyRow(columns, text) {
+    var tr = document.createElement('tr');
+    var td = document.createElement('td');
+    td.colSpan = columns;
+    td.className = 'muted';
+    td.textContent = text;
+    tr.appendChild(td);
+    return tr;
+  }
+
+  function contactRow(c) {
+    var tr = document.createElement('tr');
+    if (!c.active) tr.classList.add('inactive');
+
+    tr.appendChild(cell('地域', c.region || '—'));
+    tr.appendChild(cell('都道府県', c.prefecture || '—'));
+
+    var who = document.createElement('div');
+    who.textContent = c.organization;
+    // 薄い表示だけに頼らず、無効であることを文字でも示す（§48）
+    if (!c.active) {
+      var inactiveBadge = document.createElement('span');
+      inactiveBadge.className = 'badge off';
+      inactiveBadge.textContent = '○ 無効';
+      inactiveBadge.style.marginLeft = '8px';
+      who.appendChild(inactiveBadge);
+    }
+    if (c.name) {
+      var sub = document.createElement('div');
+      sub.className = 'muted small';
+      sub.textContent = c.name;
+      who.appendChild(sub);
+    }
+    tr.appendChild(cell('団体・氏名', who));
+
+    var type = document.createElement('span');
+    type.className = 'badge';
+    type.textContent = c.typeLabel;
+    tr.appendChild(cell('区分', type));
+
+    tr.appendChild(cell('メールアドレス', c.email));
+
+    var actions = document.createElement('td');
+    actions.setAttribute('data-label', '操作');
+
+    // 一般担当者は閲覧のみ（§36）
+    if (currentUser.isMailAdmin) {
+      var editBtn = document.createElement('button');
+      editBtn.className = 'secondary small';
+      editBtn.textContent = '編集';
+      editBtn.addEventListener('click', function () { openContactModal(c); });
+      actions.appendChild(editBtn);
+    }
+    // 無効化はシステム管理者のみ（§36）
+    if (currentUser.isSystemAdmin) {
+      var toggleBtn = document.createElement('button');
+      toggleBtn.className = c.active ? 'danger' : 'secondary';
+      toggleBtn.textContent = c.active ? '無効にする' : '有効にする';
+      toggleBtn.style.marginLeft = '8px';
+      toggleBtn.addEventListener('click', function () {
+        var verb = c.active ? '無効' : '有効';
+        if (!confirm(c.organization + ' を' + verb + 'にします。よろしいですか？')) return;
+        busy(toggleBtn, true);
+        api('apiSetContactActive', getToken(), c.contactId, !c.active)
+          .then(loadContacts)
+          .catch(function (err) {
+            busy(toggleBtn, false);
+            setMessage('contacts-message', err.message, 'error');
+          });
+      });
+      actions.appendChild(toggleBtn);
+    }
+    tr.appendChild(actions);
+
+    return tr;
+  }
+
+  ['contact-keyword', 'contact-region', 'contact-type'].forEach(function (id) {
+    var el = $(id);
+    var eventName = el.tagName === 'SELECT' ? 'change' : 'input';
+    el.addEventListener(eventName, function () {
+      clearTimeout(contactFilterTimer);
+      contactFilterTimer = setTimeout(loadContacts, el.tagName === 'SELECT' ? 0 : 300);
+    });
+  });
+
+  $('add-contact-btn').addEventListener('click', function () { openContactModal(null); });
+  $('contact-cancel').addEventListener('click', function () { show('contact-modal', false); });
+
+  function openContactModal(contact) {
+    $('contact-modal-title').textContent = contact ? '連絡先を編集' : '連絡先を追加';
+    $('contact-id').value = contact ? contact.contactId : '';
+    $('contact-region-input').value = contact ? (contact.region || '') : '';
+    $('contact-prefecture').value = contact ? contact.prefecture : '';
+    $('contact-organization').value = contact ? contact.organization : '';
+    $('contact-type-input').value = contact ? contact.type : 'SECRETARIAT';
+    $('contact-name').value = contact ? contact.name : '';
+    $('contact-email').value = contact ? contact.email : '';
+    $('contact-phone').value = contact ? contact.phone : '';
+
+    show('contact-modal-message', false);
+    show('contact-history', false);
+    $('contact-history-list').innerHTML = '';
+    show('contact-modal', true);
+    $('contact-organization').focus();
+
+    if (contact) loadContactHistory(contact.contactId);
+  }
+
+  /** 変更前後を並べて表示する（§37）。 */
+  function loadContactHistory(contactId) {
+    api('apiListContactChanges', getToken(), contactId).then(function (changes) {
+      var list = $('contact-history-list');
+      list.innerHTML = '';
+      if (!changes.length) return;
+
+      changes.forEach(function (change) {
+        var item = document.createElement('div');
+        item.className = 'history-item';
+
+        var head = document.createElement('div');
+        head.className = 'h-head';
+        head.textContent = formatDateTime(change.changedAt) + '　' + change.changedBy +
+          '　' + operationLabel(change.operation);
+        item.appendChild(head);
+
+        diffFields(change.before, change.after).forEach(function (diff) {
+          var row = document.createElement('div');
+          row.className = 'h-change';
+          var before = document.createElement('span');
+          before.className = 'h-before';
+          before.textContent = diff.before || '（未設定）';
+          row.appendChild(document.createTextNode(diff.label + '：'));
+          row.appendChild(before);
+          row.appendChild(document.createTextNode(' → ' + (diff.after || '（未設定）')));
+          item.appendChild(row);
+        });
+
+        list.appendChild(item);
+      });
+      show('contact-history', true);
+    }).catch(function () {
+      // 履歴が取れなくても編集は続けられるようにする
+    });
+  }
+
+  var CONTACT_FIELD_LABEL = {
+    prefecture: '都道府県', organization: '団体名', region: '地域ブロック',
+    type: '区分', name: '氏名', email: 'メールアドレス', phone: '電話番号'
+  };
+
+  function diffFields(before, after) {
+    if (!before || !after) return [];
+    return Object.keys(CONTACT_FIELD_LABEL)
+      .filter(function (key) { return String(before[key] || '') !== String(after[key] || ''); })
+      .map(function (key) {
+        return {
+          label: CONTACT_FIELD_LABEL[key],
+          before: String(before[key] || ''),
+          after: String(after[key] || '')
+        };
+      });
+  }
+
+  function operationLabel(operation) {
+    if (operation === 'CREATE') return '登録';
+    if (operation === 'DISABLE') return '無効化';
+    if (operation === 'ENABLE') return '有効化';
+    return '変更';
+  }
+
+  $('contact-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = $('contact-save');
+    busy(btn, true, '保存中…');
+    show('contact-modal-message', false);
+
+    api('apiSaveContact', getToken(), {
+      contactId: $('contact-id').value,
+      region: $('contact-region-input').value,
+      prefecture: $('contact-prefecture').value,
+      organization: $('contact-organization').value,
+      type: $('contact-type-input').value,
+      name: $('contact-name').value,
+      email: $('contact-email').value,
+      phone: $('contact-phone').value
+    }).then(function () {
+      show('contact-modal', false);
+      loadContacts();
+    }).catch(function (err) {
+      var box = $('contact-modal-message');
+      box.textContent = err.message;
+      show(box, true);
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  /* ── 宛先グループ（§31・§32）── */
+
+  function loadGroups() {
+    var tbody = $('groups-tbody');
+    tbody.innerHTML = '<tr><td colspan="4" class="muted">読み込み中…</td></tr>';
+    setMessage('groups-message', '');
+
+    api('apiListGroups', getToken(), currentUser.isMailAdmin).then(function (groups) {
+      tbody.innerHTML = '';
+      if (!groups.length) {
+        tbody.appendChild(emptyRow(4, 'グループがまだありません。'));
+        return;
+      }
+      groups.forEach(function (g) { tbody.appendChild(groupRow(g)); });
+    }).catch(function (err) {
+      tbody.innerHTML = '';
+      setMessage('groups-message', err.message, 'error');
+    });
+  }
+
+  function groupRow(g) {
+    var tr = document.createElement('tr');
+    if (!g.active) tr.classList.add('inactive');
+
+    var name = document.createElement('div');
+    name.textContent = g.name;
+    if (!g.active) {
+      var badge = document.createElement('span');
+      badge.className = 'badge off';
+      badge.textContent = '○ 無効';
+      badge.style.marginLeft = '8px';
+      name.appendChild(badge);
+    }
+    tr.appendChild(cell('グループ名', name));
+    tr.appendChild(cell('説明', g.description || '—'));
+    tr.appendChild(cell('宛先数', g.memberCount + '件'));
+
+    var actions = document.createElement('td');
+    actions.setAttribute('data-label', '操作');
+
+    var openBtn = document.createElement('button');
+    openBtn.className = 'secondary small';
+    openBtn.textContent = currentUser.isMailAdmin ? '編集' : 'メンバーを見る';
+    openBtn.addEventListener('click', function () { openGroupModal(g); });
+    actions.appendChild(openBtn);
+
+    if (currentUser.isMailAdmin) {
+      var toggleBtn = document.createElement('button');
+      toggleBtn.className = g.active ? 'danger' : 'secondary';
+      toggleBtn.textContent = g.active ? '無効にする' : '有効にする';
+      toggleBtn.style.marginLeft = '8px';
+      toggleBtn.addEventListener('click', function () {
+        var verb = g.active ? '無効' : '有効';
+        if (!confirm(g.name + ' を' + verb + 'にします。よろしいですか？')) return;
+        busy(toggleBtn, true);
+        api('apiSetGroupActive', getToken(), g.groupId, !g.active)
+          .then(loadGroups)
+          .catch(function (err) {
+            busy(toggleBtn, false);
+            setMessage('groups-message', err.message, 'error');
+          });
+      });
+      actions.appendChild(toggleBtn);
+    }
+    tr.appendChild(actions);
+
+    return tr;
+  }
+
+  $('add-group-btn').addEventListener('click', function () { openGroupModal(null); });
+  $('group-cancel').addEventListener('click', function () {
+    show('group-modal', false);
+    loadGroups();
+  });
+
+  function openGroupModal(group) {
+    $('group-modal-title').textContent = group
+      ? (currentUser.isMailAdmin ? 'グループを編集' : group.name)
+      : 'グループを作成';
+    $('group-id').value = group ? group.groupId : '';
+    $('group-name').value = group ? group.name : '';
+    $('group-description').value = group ? group.description : '';
+    $('group-name').disabled = !currentUser.isMailAdmin;
+    $('group-description').disabled = !currentUser.isMailAdmin;
+    show('group-save', currentUser.isMailAdmin);
+
+    show('group-modal-message', false);
+    // メンバーの追加はグループを作ってからにする
+    show('group-members-section', !!group);
+    $('group-member-list').innerHTML = '';
+    show('group-modal', true);
+
+    if (group) {
+      fillGroupFilterOptions();
+      loadGroupMembers(group.groupId);
+    } else {
+      $('group-name').focus();
+    }
+  }
+
+  function fillGroupFilterOptions() {
+    var ready = contactOptions.regions.length ? Promise.resolve() : loadContactOptions();
+    ready.then(function () {
+      fillOptions($('group-add-type'), contactOptions.types.map(function (t) {
+        return { value: t.type, label: t.label };
+      }), '区分で追加…');
+      fillOptions($('group-add-region'), contactOptions.regions.map(function (r) {
+        return { value: r, label: r };
+      }), '地域ブロックで追加…');
+    });
+  }
+
+  function loadGroupMembers(groupId) {
+    var list = $('group-member-list');
+    list.innerHTML = '<div class="member muted">読み込み中…</div>';
+
+    api('apiGetGroup', getToken(), groupId).then(function (result) {
+      $('group-member-count').textContent = result.group.memberCount;
+      list.innerHTML = '';
+      if (!result.members.length) {
+        list.innerHTML = '<div class="member muted">まだ宛先がありません。</div>';
+        return;
+      }
+      result.members.forEach(function (m) {
+        var row = document.createElement('div');
+        row.className = 'member';
+
+        var who = document.createElement('div');
+        who.textContent = m.label + '（' + m.typeLabel + '）';
+        var email = document.createElement('div');
+        email.className = 'm-email';
+        email.textContent = m.email;
+        who.appendChild(email);
+        row.appendChild(who);
+
+        if (currentUser.isMailAdmin) {
+          var removeBtn = document.createElement('button');
+          removeBtn.className = 'secondary small';
+          removeBtn.textContent = '外す';
+          removeBtn.addEventListener('click', function () {
+            busy(removeBtn, true);
+            api('apiRemoveGroupMember', getToken(), groupId, m.contactId)
+              .then(function () { loadGroupMembers(groupId); })
+              .catch(function (err) {
+                busy(removeBtn, false);
+                showGroupModalMessage(err.message);
+              });
+          });
+          row.appendChild(removeBtn);
+        }
+        list.appendChild(row);
+      });
+    }).catch(function (err) {
+      list.innerHTML = '';
+      showGroupModalMessage(err.message);
+    });
+  }
+
+  function showGroupModalMessage(text) {
+    var box = $('group-modal-message');
+    box.textContent = text;
+    show(box, true);
+  }
+
+  // 区分・地域ブロックでまとめて登録する（§31）
+  $('group-add-by-filter').addEventListener('click', function () {
+    var btn = $('group-add-by-filter');
+    var groupId = $('group-id').value;
+    var type = $('group-add-type').value;
+    var region = $('group-add-region').value;
+
+    if (!type && !region) {
+      showGroupModalMessage('区分または地域ブロックを選んでください。');
+      return;
+    }
+    show('group-modal-message', false);
+    busy(btn, true, '追加中…');
+
+    api('apiAddGroupMembersByFilter', getToken(), groupId, { type: type, region: region })
+      .then(function (result) {
+        loadGroupMembers(groupId);
+        if (!result.added) showGroupModalMessage('追加対象の連絡先がありませんでした。');
+      })
+      .catch(function (err) { showGroupModalMessage(err.message); })
+      .then(function () { busy(btn, false); });
+  });
+
+  $('group-save').addEventListener('click', function () {
+    var btn = $('group-save');
+    busy(btn, true, '保存中…');
+    show('group-modal-message', false);
+
+    api('apiSaveGroup', getToken(), {
+      groupId: $('group-id').value,
+      name: $('group-name').value,
+      description: $('group-description').value
+    }).then(function (group) {
+      // 作成直後はそのままメンバー登録へ進めるようにする
+      $('group-id').value = group.groupId;
+      show('group-members-section', true);
+      fillGroupFilterOptions();
+      loadGroupMembers(group.groupId);
+    }).catch(function (err) {
+      showGroupModalMessage(err.message);
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  /* ── 宛先欄の連絡先検索（§27）── */
+
+  ['to', 'cc', 'bcc'].forEach(function (field) {
+    attachContactSuggest($('compose-' + field), $('compose-' + field + '-suggestions'));
+  });
+
+  function attachContactSuggest(input, listEl) {
+    var timer = null;
+    // グループは宛先欄からのみ選べる（BCC固定のため、CC/BCC欄に出す意味がない）
+    var allowGroups = input.id === 'compose-to';
+
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      var term = lastTerm(input.value);
+      if (term.length < 1 || term.indexOf('@') >= 0) {
+        show(listEl, false);
+        return;
+      }
+      timer = setTimeout(function () {
+        api('apiSearchRecipients', getToken(), term).then(function (result) {
+          renderSuggestions(input, listEl, result.contacts,
+            allowGroups ? result.groups : []);
+        }).catch(function () { show(listEl, false); });
+      }, 250);
+    });
+
+    input.addEventListener('blur', function () {
+      // 候補のクリックが先に処理されるよう少し待つ
+      setTimeout(function () { show(listEl, false); }, 200);
+    });
+  }
+
+  /** 入力中の最後の宛先（カンマ以降）を検索語にする。 */
+  function lastTerm(value) {
+    var parts = String(value).split(/[,;]/);
+    return parts[parts.length - 1].trim();
+  }
+
+  function renderSuggestions(input, listEl, contacts, groups) {
+    listEl.innerHTML = '';
+    if (!contacts.length && !groups.length) {
+      show(listEl, false);
+      return;
+    }
+
+    // グループを先に出す（§32）
+    groups.forEach(function (g) {
+      if (selectedGroups.some(function (s) { return s.groupId === g.groupId; })) return;
+      listEl.appendChild(suggestionItem(
+        g.name, g.memberCount + '件・BCCで送信します',
+        function () {
+          addGroupChip(g);
+          clearLastTerm(input);
+          show(listEl, false);
+        }
+      ));
+    });
+
+    contacts.forEach(function (c) {
+      listEl.appendChild(suggestionItem(
+        c.label + '（' + c.typeLabel + '）', c.email,
+        function () {
+          applySuggestion(input, c.email);
+          show(listEl, false);
+        }
+      ));
+    });
+
+    show(listEl, listEl.childNodes.length > 0);
+  }
+
+  function suggestionItem(title, subtitle, onSelect) {
+    var li = document.createElement('li');
+    var name = document.createElement('div');
+    name.className = 's-name';
+    name.textContent = title;
+    var sub = document.createElement('div');
+    sub.className = 's-email';
+    sub.textContent = subtitle;
+    li.appendChild(name);
+    li.appendChild(sub);
+    li.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      onSelect();
+    });
+    return li;
+  }
+
+  /* ── 選択したグループ（§32・§33）── */
+
+  var selectedGroups = [];
+
+  function addGroupChip(group) {
+    if (selectedGroups.some(function (g) { return g.groupId === group.groupId; })) return;
+    selectedGroups.push(group);
+    renderGroupChips();
+  }
+
+  function renderGroupChips() {
+    var container = $('compose-groups');
+    container.innerHTML = '';
+
+    selectedGroups.forEach(function (g) {
+      var chip = document.createElement('div');
+      chip.className = 'group-chip';
+
+      var text = document.createElement('div');
+      var name = document.createElement('div');
+      name.className = 'g-name';
+      name.textContent = g.name;
+      var note = document.createElement('div');
+      note.className = 'g-note';
+      // 複数人グループは BCC で送ることを明示する（§33）
+      note.textContent = g.memberCount + '件　BCCで送信します';
+      text.appendChild(name);
+      text.appendChild(note);
+      chip.appendChild(text);
+
+      var removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = '×';
+      removeBtn.title = 'この グループを外す';
+      removeBtn.addEventListener('click', function () {
+        selectedGroups = selectedGroups.filter(function (s) {
+          return s.groupId !== g.groupId;
+        });
+        renderGroupChips();
+      });
+      chip.appendChild(removeBtn);
+
+      container.appendChild(chip);
+    });
+
+    show(container, selectedGroups.length > 0);
+  }
+
+  /** 入力途中の検索語を消す（グループを選んだときに使う）。 */
+  function clearLastTerm(input) {
+    var parts = String(input.value).split(/[,;]/);
+    parts.pop();
+    input.value = parts.join(',');
+    if (input.value && !/,\s*$/.test(input.value)) input.value += ', ';
+    input.focus();
+  }
+
+  function applySuggestion(input, email) {
+    var parts = String(input.value).split(/[,;]/);
+    parts[parts.length - 1] = ' ' + email;
+    input.value = parts.join(',').replace(/^\s+/, '') + ', ';
+    input.focus();
+  }
+
+  /* ── 利用者管理（§10）── */
+
+  function loadUsers() {
+    var tbody = $('users-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" class="muted">読み込み中…</td></tr>';
+    setMessage('users-message', '');
+
+    api('apiListUsers', getToken()).then(function (users) {
+      tbody.innerHTML = '';
+      users.forEach(function (u) { tbody.appendChild(userRow(u)); });
+    }).catch(function (err) {
+      tbody.innerHTML = '';
+      setMessage('users-message', err.message, 'error');
+    });
+  }
+
+  function userRow(u) {
+    var tr = document.createElement('tr');
+
+    tr.appendChild(cell('氏名', u.name));
+    tr.appendChild(cell('メールアドレス', u.email));
+    tr.appendChild(cell('権限', ROLE_LABEL[u.role] || u.role));
+
+    var status = document.createElement('span');
+    status.className = 'badge ' + (u.active ? 'on' : 'off');
+    status.textContent = u.active ? '● 有効' : '○ 無効';
+    tr.appendChild(cell('状態', status));
+
+    tr.appendChild(cell('最終ログイン', formatDateTime(u.lastLogin)));
+
+    var actions = document.createElement('td');
+    actions.setAttribute('data-label', '操作');
+
+    var editBtn = document.createElement('button');
+    editBtn.className = 'secondary small';
+    editBtn.textContent = '編集';
+    editBtn.addEventListener('click', function () { openUserModal(u); });
+    actions.appendChild(editBtn);
+
+    var toggleBtn = document.createElement('button');
+    toggleBtn.className = u.active ? 'danger' : 'secondary';
+    toggleBtn.textContent = u.active ? '無効にする' : '有効にする';
+    toggleBtn.style.marginLeft = '8px';
+    toggleBtn.addEventListener('click', function () {
+      var verb = u.active ? '無効' : '有効';
+      if (!confirm(u.name + ' を' + verb + 'にします。よろしいですか？')) return;
+      busy(toggleBtn, true);
+      api('apiSetUserActive', getToken(), u.userId, !u.active)
+        .then(loadUsers)
+        .catch(function (err) {
+          busy(toggleBtn, false);
+          setMessage('users-message', err.message, 'error');
+        });
+    });
+    actions.appendChild(toggleBtn);
+    tr.appendChild(actions);
+
+    return tr;
+  }
+
+  function cell(label, content) {
+    var td = document.createElement('td');
+    td.setAttribute('data-label', label);
+    if (content instanceof Node) td.appendChild(content);
+    else td.textContent = content;
+    return td;
+  }
+
+  $('add-user-btn').addEventListener('click', function () { openUserModal(null); });
+  $('user-cancel').addEventListener('click', closeUserModal);
+
+  function openUserModal(user) {
+    $('user-modal-title').textContent = user ? '利用者を編集' : '利用者を追加';
+    $('user-id').value = user ? user.userId : '';
+    $('user-name').value = user ? user.name : '';
+    $('user-email').value = user ? user.email : '';
+    $('user-role').value = user ? user.role : 'USER';
+    show('user-modal-message', false);
+    show('user-modal', true);
+    $('user-name').focus();
+  }
+
+  function closeUserModal() {
+    show('user-modal', false);
+  }
+
+  $('user-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = $('user-save');
+    busy(btn, true, '保存中…');
+    show('user-modal-message', false);
+
+    api('apiSaveUser', getToken(), {
+      userId: $('user-id').value,
+      name: $('user-name').value,
+      email: $('user-email').value,
+      role: $('user-role').value
+    }).then(function () {
+      closeUserModal();
+      loadUsers();
+    }).catch(function (err) {
+      var box = $('user-modal-message');
+      box.textContent = err.message;
+      show(box, true);
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  /* ── 操作ログ（§41・§42）── */
+
+  var logOptionsLoaded = false;
+  var logFilterTimer = null;
+
+  function loadLogs() {
+    var tbody = $('logs-tbody');
+    tbody.innerHTML = '<tr><td colspan="5" class="muted">読み込み中…</td></tr>';
+    setMessage('logs-message', '');
+
+    var ready = logOptionsLoaded ? Promise.resolve() : loadLogOptions();
+
+    ready.then(function () {
+      return api('apiListAuditLogs', getToken(), {
+        keyword: $('log-keyword').value,
+        action: $('log-action').value,
+        userId: $('log-user').value,
+        from: $('log-from').value,
+        to: $('log-to').value,
+        limit: 200
+      });
+    }).then(function (result) {
+      tbody.innerHTML = '';
+      $('log-count').textContent = result.total
+        ? result.total + '件中 ' + result.logs.length + '件を表示'
+        : '';
+
+      if (!result.logs.length) {
+        tbody.appendChild(emptyRow(5, '該当するログがありません。'));
+        return;
+      }
+      result.logs.forEach(function (log) { tbody.appendChild(logRow(log)); });
+    }).catch(function (err) {
+      tbody.innerHTML = '';
+      setMessage('logs-message', err.message, 'error');
+    });
+  }
+
+  function loadLogOptions() {
+    return api('apiListAuditOptions', getToken()).then(function (options) {
+      fillOptions($('log-action'), options.actions.map(function (a) {
+        return { value: a.action, label: a.label };
+      }), '操作 すべて');
+      fillOptions($('log-user'), options.users.map(function (u) {
+        return { value: u.userId, label: u.name };
+      }), '利用者 すべて');
+      logOptionsLoaded = true;
+    });
+  }
+
+  function logRow(log) {
+    var tr = document.createElement('tr');
+
+    tr.appendChild(cell('日時', formatDateTime(log.timestamp)));
+    tr.appendChild(cell('利用者', log.userName || log.email || '—'));
+
+    var action = document.createElement('span');
+    action.className = 'badge';
+    action.textContent = log.actionLabel;
+    tr.appendChild(cell('操作', action));
+
+    tr.appendChild(cell('対象', log.targetType
+      ? log.targetType + (log.targetId ? ' / ' + log.targetId : '')
+      : '—'));
+
+    var detail = document.createElement('div');
+    detail.className = 'log-detail';
+    detail.textContent = formatLogDetail(log.detail);
+    tr.appendChild(cell('内容', detail));
+
+    return tr;
+  }
+
+  /** JSON のままでは読みにくいので、主要な項目だけ日本語で並べる。 */
+  function formatLogDetail(raw) {
+    if (!raw) return '';
+    var data;
+    try { data = JSON.parse(raw); } catch (e) { return String(raw); }
+    if (typeof data !== 'object' || data === null) return String(raw);
+
+    return Object.keys(data).map(function (key) {
+      var value = data[key];
+      if (value && typeof value === 'object') value = JSON.stringify(value);
+      return key + '：' + value;
+    }).join('\n');
+  }
+
+  ['log-keyword', 'log-action', 'log-user', 'log-from', 'log-to'].forEach(function (id) {
+    var el = $(id);
+    var eventName = el.tagName === 'SELECT' || el.type === 'date' ? 'change' : 'input';
+    el.addEventListener(eventName, function () {
+      clearTimeout(logFilterTimer);
+      logFilterTimer = setTimeout(loadLogs, eventName === 'input' ? 300 : 0);
+    });
+  });
+
+  $('log-clear').addEventListener('click', function () {
+    ['log-keyword', 'log-action', 'log-user', 'log-from', 'log-to'].forEach(function (id) {
+      $(id).value = '';
+    });
+    loadLogs();
+  });
+
+  /* ── システム設定（§6・§9）── */
+
+  var settingsFields = [];
+
+  function loadSettings() {
+    var container = $('settings-fields');
+    container.innerHTML = '<p class="muted">読み込み中…</p>';
+    setMessage('settings-message', '');
+
+    api('apiListSettings', getToken()).then(function (items) {
+      settingsFields = items;
+      container.innerHTML = '';
+
+      items.forEach(function (item) {
+        var wrap = document.createElement('div');
+
+        var label = document.createElement('label');
+        label.textContent = item.label;
+        label.htmlFor = 'setting-' + item.key;
+        wrap.appendChild(label);
+
+        var input = document.createElement('input');
+        input.type = item.type === 'number' ? 'text' : 'text';
+        input.id = 'setting-' + item.key;
+        input.value = item.value;
+        if (item.type === 'number') input.inputMode = 'numeric';
+        wrap.appendChild(input);
+
+        if (item.type === 'number') {
+          var hint = document.createElement('p');
+          hint.className = 'muted small';
+          hint.style.margin = '6px 0 0';
+          hint.textContent = item.min + '〜' + item.max + ' の範囲で指定します。';
+          wrap.appendChild(hint);
+        }
+        container.appendChild(wrap);
+      });
+    }).catch(function (err) {
+      container.innerHTML = '';
+      setMessage('settings-message', err.message, 'error');
+    });
+  }
+
+  $('settings-save').addEventListener('click', function () {
+    var btn = $('settings-save');
+    busy(btn, true, '保存中…');
+    setMessage('settings-message', '');
+
+    var values = {};
+    settingsFields.forEach(function (item) {
+      values[item.key] = $('setting-' + item.key).value;
+    });
+
+    api('apiSaveSettings', getToken(), values).then(function (result) {
+      setMessage('settings-message',
+        result.changed ? result.changed + '件の設定を保存しました。' : '変更はありませんでした。',
+        'info');
+    }).catch(function (err) {
+      setMessage('settings-message', err.message, 'error');
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
+
+  /* ── 起動時：保存済みセッションの復元 ── */
+
+  (function init() {
+    var token = getToken();
+    if (!token) return;
+    api('apiGetCurrentUser', token)
+      .then(enterApp)
+      .catch(function () { setToken(''); });
+  })();
+})();
+</script>
+
+</body>
+</html>
