@@ -3024,8 +3024,9 @@ input[type="file"] { font-size: 15px; }
         label.htmlFor = 'setting-' + item.key;
         wrap.appendChild(label);
 
-        var input = document.createElement('input');
-        input.type = item.type === 'number' ? 'text' : 'text';
+        var input = document.createElement(item.type === 'textarea' ? 'textarea' : 'input');
+        if (item.type === 'textarea') input.rows = 5;
+        else input.type = 'text';
         input.id = 'setting-' + item.key;
         input.value = item.value;
         if (item.type === 'number') input.inputMode = 'numeric';
