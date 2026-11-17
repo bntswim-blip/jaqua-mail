@@ -1238,14 +1238,27 @@ input[type="file"] { font-size: 15px; }
     };
     // GitHub Pages など Google の外に置いた画面：fetch で Apps Script の doPost を呼ぶ
     if (window.JAQUA_API_URL) {
-      return fetch(window.JAQUA_API_URL, {
-        method: 'POST',
-        // text/plain にすると CORS の事前確認（preflight）が不要になる
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ fn: name, args: args }),
-        credentials: 'omit',
-        redirect: 'follow'
-      }).then(function (r) { return r.json(); }).then(function (res) {
+      // 読み取りだけの呼び出しは、応答が来ないとき（サーバーが固まったとき）に自動でやり直す。
+      // 登録・送信など書き込みの呼び出しは、二重に実行しないよう、やり直さない。
+      var readOnly = /^api(List|Get|Search|Build|Preview)/.test(name);
+      var attempt = function (triesLeft) {
+        var controller = new AbortController();
+        var timer = setTimeout(function () { controller.abort(); }, readOnly ? 15000 : 90000);
+        return fetch(window.JAQUA_API_URL, {
+          method: 'POST',
+          // text/plain にすると CORS の事前確認（preflight）が不要になる
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ fn: name, args: args }),
+          credentials: 'omit',
+          redirect: 'follow',
+          signal: controller.signal
+        }).then(function (r) { clearTimeout(timer); return r.json(); }, function (e) {
+          clearTimeout(timer);
+          if (readOnly && triesLeft > 0) return attempt(triesLeft - 1);
+          throw e;
+        });
+      };
+      return attempt(readOnly ? 2 : 0).then(function (res) {
         return new Promise(function (resolve, reject) { finish(res, resolve, reject); });
       }, function () {
         record();
