@@ -917,6 +917,16 @@ input[type="file"] { font-size: 15px; }
             <button type="button" id="settings-save">保存</button>
           </div>
         </div>
+        <div class="card" style="margin-top:20px">
+          <h2>システム診断</h2>
+          <p class="muted small" style="margin:8px 0 0">
+            設定・接続・共有設定・自動実行（トリガー）が正しいかを点検します。✗ が出た行を、管理者に伝えてください。
+          </p>
+          <div class="row" style="justify-content:flex-start; margin-top:16px">
+            <button type="button" class="secondary" id="diagnostics-run">診断を実行</button>
+          </div>
+          <pre id="diagnostics-result" class="hidden" style="white-space:pre-wrap;margin-top:16px;font-size:13px;line-height:1.7"></pre>
+        </div>
       </section>
     </main>
   </div>
@@ -3175,6 +3185,21 @@ input[type="file"] { font-size: 15px; }
       setMessage('settings-message', err.message, 'error');
     });
   }
+
+  $('diagnostics-run').addEventListener('click', function () {
+    var btn = $('diagnostics-run');
+    var out = $('diagnostics-result');
+    busy(btn, true, '診断中…');
+    api('apiRunDiagnostics', getToken()).then(function (r) {
+      out.textContent = r.report;
+      show(out, true);
+    }).catch(function (err) {
+      out.textContent = err.message;
+      show(out, true);
+    }).then(function () {
+      busy(btn, false);
+    });
+  });
 
   $('settings-save').addEventListener('click', function () {
     var btn = $('settings-save');
