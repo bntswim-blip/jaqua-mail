@@ -1441,9 +1441,11 @@ input[type="file"] { font-size: 15px; }
   }
 
   // 件数と一覧を1回の呼び出しで取得する（別々に呼ぶより速い）
-  function loadDashboardOnce() {
+  function loadDashboardOnce(keepCurrent) {
     var tbody = $('threads-tbody');
-    tbody.innerHTML = '<tr><td colspan="4" class="muted">読み込み中…</td></tr>';
+    if (!keepCurrent || !tbody.children.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="muted">読み込み中…</td></tr>';
+    }
     setMessage('list-message', '');
 
     api('apiGetDashboard', getToken(), {
@@ -1624,13 +1626,15 @@ input[type="file"] { font-size: 15px; }
 
   /* ── メール詳細（§15）── */
 
-  function openThread(threadId) {
+  function openThread(threadId, keepCurrent) {
     currentThreadId = threadId;
     document.querySelectorAll('#threads-tbody tr.thread').forEach(function (tr) {
       tr.classList.toggle('selected', tr.dataset.threadId === threadId);
     });
     document.body.classList.add('detail-open');
-    $('detail-body').innerHTML = '<p class="muted center" style="padding:40px 0">読み込み中…</p>';
+    if (!keepCurrent) {
+      $('detail-body').innerHTML = '<p class="muted center" style="padding:40px 0">読み込み中…</p>';
+    }
 
     api('apiGetThreadDetail', getToken(), threadId)
       .then(renderThreadDetail)
@@ -1746,7 +1750,10 @@ input[type="file"] { font-size: 15px; }
         }
         busy(assignBtn, true, '割当中…');
         api('apiAssignThread', getToken(), detail.threadId, select.value)
-          .then(function () { afterThreadChange(detail.threadId); })
+          .then(function (r) {
+            setActionMessage(panel, r.assignedUserName + ' さんに割り当てました。画面を更新しています…', 'info');
+            afterThreadChange(detail.threadId);
+          })
           .catch(function (err) {
             busy(assignBtn, false);
             setActionMessage(panel, err.message, 'error');
@@ -1857,8 +1864,9 @@ input[type="file"] { font-size: 15px; }
 
   /** 割当・ステータス変更のあとは件数・一覧・詳細をまとめて更新する。 */
   function afterThreadChange(threadId) {
-    loadDashboardOnce();
-    openThread(threadId);
+    // 操作のあとは、表示を消さずに、新しい内容へ入れ替える（待ち時間に画面が空白にならないように）
+    loadDashboardOnce(true);
+    openThread(threadId, true);
   }
 
   function messageBlock(m, isLast) {
