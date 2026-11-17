@@ -855,7 +855,10 @@ input[type="file"] { font-size: 15px; }
         <div class="card">
           <div class="row">
             <h2>利用者管理</h2>
-            <button id="add-user-btn">＋ 利用者を追加</button>
+            <div class="row" style="gap:8px">
+              <button id="import-user-btn" class="secondary">一括登録</button>
+              <button id="add-user-btn">＋ 利用者を追加</button>
+            </div>
           </div>
           <div id="users-message" class="message hidden" style="margin-top:16px"></div>
           <table style="margin-top:20px">
@@ -1049,6 +1052,29 @@ input[type="file"] { font-size: 15px; }
     <div class="row" style="justify-content:flex-end">
       <button type="button" class="secondary" id="group-cancel">閉じる</button>
       <button type="button" id="group-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 利用者の一括登録 -->
+<div id="import-user-modal" class="modal-backdrop hidden">
+  <div class="modal modal-wide stack">
+    <h2>利用者の一括登録</h2>
+    <p class="muted small" style="margin:0">
+      Excel やスプレッドシートの表を、見出しの行ごとコピーして貼り付けてください。1行目は見出しにします。
+    </p>
+    <div class="muted small" style="margin:0">
+      <strong>必要な列</strong>：氏名 ／ メールアドレス<br>
+      <strong>任意の列</strong>：権限（一般・メール管理・システム管理。空欄は一般）<br>
+      すでに登録されているメールアドレスは、読み飛ばします。
+    </div>
+    <textarea id="import-user-text" rows="9" placeholder="氏名	メールアドレス	権限&#10;山田 太郎	yamada@example.jp	一般" spellcheck="false"></textarea>
+    <div id="import-user-result" class="message hidden"></div>
+    <ul id="import-user-list" class="muted small" style="margin:0;padding-left:20px"></ul>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="secondary" id="import-user-cancel">閉じる</button>
+      <button type="button" class="secondary" id="import-user-check">内容を確認</button>
+      <button type="button" id="import-user-commit" disabled>登録する</button>
     </div>
   </div>
 </div>
@@ -2358,6 +2384,71 @@ input[type="file"] { font-size: 15px; }
 
   $('add-contact-btn').addEventListener('click', function () { openContactModal(null); });
   $('contact-cancel').addEventListener('click', function () { show('contact-modal', false); });
+
+  /* ── 利用者の一括登録 ── */
+
+  var importUserChecked = '';
+
+  function resetUserImport() {
+    importUserChecked = '';
+    $('import-user-commit').disabled = true;
+    show('import-user-result', false);
+    $('import-user-list').innerHTML = '';
+  }
+  $('import-user-btn').addEventListener('click', function () {
+    $('import-user-text').value = '';
+    resetUserImport();
+    show('import-user-modal', true);
+  });
+  $('import-user-cancel').addEventListener('click', function () { show('import-user-modal', false); });
+  $('import-user-text').addEventListener('input', resetUserImport);
+
+  function addListItem(listId, text) {
+    var li = document.createElement('li');
+    li.textContent = text;
+    $(listId).appendChild(li);
+  }
+
+  function runUserImport(commit) {
+    var text = $('import-user-text').value;
+    var btn = commit ? $('import-user-commit') : $('import-user-check');
+    busy(btn, true, commit ? '登録中…' : '確認中…');
+    $('import-user-list').innerHTML = '';
+
+    return api('apiImportUsers', getToken(), text, commit).then(function (r) {
+      if (commit) {
+        setMessage('import-user-result', r.createCount + '名を登録しました。', 'info');
+        if (typeof loadUsers === 'function') loadUsers();
+        return;
+      }
+      if (r.errorCount) {
+        setMessage('import-user-result',
+          r.total + '件のうち ' + r.errorCount + '件に誤りがあります。直してから、もう一度確認してください。', 'error');
+        r.errors.forEach(function (e) { addListItem('import-user-list', e.line + '行目：' + e.message); });
+        return;
+      }
+      setMessage('import-user-result', r.createCount + '名を新しく登録します。' +
+        (r.skipCount ? '（登録済みのため読み飛ばす：' + r.skipCount + '名）' : ''), 'info');
+      r.sample.forEach(function (u) { addListItem('import-user-list', u.name + ' / ' + u.email + ' / ' + u.roleLabel); });
+      r.skipped.forEach(function (t) { addListItem('import-user-list', '（登録済み・読み飛ばす）' + t); });
+      importUserChecked = text;
+      $('import-user-commit').disabled = r.createCount === 0;
+    }).catch(function (err) {
+      setMessage('import-user-result', err.message, 'error');
+    }).then(function () {
+      busy(btn, false);
+      if (commit) $('import-user-commit').disabled = true;
+    });
+  }
+  $('import-user-check').addEventListener('click', function () { runUserImport(false); });
+  $('import-user-commit').addEventListener('click', function () {
+    if ($('import-user-text').value !== importUserChecked) {
+      setMessage('import-user-result', '内容が変わりました。もう一度「内容を確認」を押してください。', 'error');
+      $('import-user-commit').disabled = true;
+      return;
+    }
+    runUserImport(true);
+  });
 
   /* ── 一括登録 ── */
 
