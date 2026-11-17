@@ -2076,7 +2076,7 @@ input[type="file"] { font-size: 15px; }
   $('confirm-back').addEventListener('click', function () { showComposeStep('form'); });
 
   /** 現在の入力内容をサーバー形式の下書きにする。 */
-  function currentDraft() {
+  function currentDraft(forPreview) {
     return {
       threadId: composeDraft.threadId,
       draftId: composeDraft.draftId,
@@ -2086,7 +2086,12 @@ input[type="file"] { font-size: 15px; }
       bcc: $('compose-bcc').value,
       body: $('compose-body').value,
       groupIds: selectedGroups.map(function (g) { return g.groupId; }),
-      attachments: composeFiles
+      // 確認画面には、ファイルの中身は不要。名前と大きさだけを送る（中身は、送信するときに1回だけ送る）
+      attachments: forPreview
+        ? composeFiles.map(function (f) {
+            return { name: f.name, mimeType: f.mimeType, size: Math.floor(String(f.data || '').length * 3 / 4) };
+          })
+        : composeFiles
     };
   }
 
@@ -2112,7 +2117,7 @@ input[type="file"] { font-size: 15px; }
       show(note, true);
     }, 12000);
 
-    api('apiPreviewSend', getToken(), currentDraft()).then(function (plan) {
+    api('apiPreviewSend', getToken(), currentDraft(true)).then(function (plan) {
       renderConfirm(plan);
       showComposeStep('confirm');
     }).catch(function (err) {
