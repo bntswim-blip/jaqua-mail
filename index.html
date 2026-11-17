@@ -1240,15 +1240,19 @@ input[type="file"] { font-size: 15px; }
     if (window.JAQUA_API_URL) {
       // 読み取りだけの呼び出しは、応答が来ないとき（サーバーが固まったとき）に自動でやり直す。
       // 登録・送信など書き込みの呼び出しは、二重に実行しないよう、やり直さない。
-      var readOnly = /^api(List|Get|Search|Build|Preview)/.test(name);
+      // 添付ファイルなど大きなデータを送る呼び出しは、アップロードに時間がかかるため、
+      // 待ち時間を長くとり、やり直しもしない（途中で打ち切ると、いつまでも先へ進めなくなる）。
+      var body = JSON.stringify({ fn: name, args: args });
+      var big = body.length > 200000;
+      var readOnly = !big && /^api(List|Get|Search|Build|Preview)/.test(name);
       var attempt = function (triesLeft) {
         var controller = new AbortController();
-        var timer = setTimeout(function () { controller.abort(); }, readOnly ? 15000 : 90000);
+        var timer = setTimeout(function () { controller.abort(); }, readOnly ? 15000 : 120000);
         return fetch(window.JAQUA_API_URL, {
           method: 'POST',
           // text/plain にすると CORS の事前確認（preflight）が不要になる
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ fn: name, args: args }),
+          body: body,
           credentials: 'omit',
           redirect: 'follow',
           signal: controller.signal
@@ -2100,14 +2104,24 @@ input[type="file"] { font-size: 15px; }
     }
     busy(btn, true, '確認中…');
 
+    // 添付ファイルがあると時間がかかる。止まっていないことが分かるよう、待ちが長いときは知らせる
+    var slowNote = setTimeout(function () {
+      var note = $('compose-message');
+      note.textContent = '確認に時間がかかっています。そのままお待ちください（添付ファイルが大きいと、1分ほどかかることがあります）。';
+      note.className = 'message info';
+      show(note, true);
+    }, 12000);
+
     api('apiPreviewSend', getToken(), currentDraft()).then(function (plan) {
       renderConfirm(plan);
       showComposeStep('confirm');
     }).catch(function (err) {
       var box = $('compose-message');
       box.textContent = err.message;
+      box.className = 'message error';
       show(box, true);
     }).then(function () {
+      clearTimeout(slowNote);
       busy(btn, false);
     });
   });
